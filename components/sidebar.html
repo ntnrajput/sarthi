@@ -1,0 +1,82 @@
+<!-- components/sidebar.html -->
+<aside id="sidebar" class="sidebar d-flex flex-column p-3 border-end h-100 sticky-top" style="top:56px; min-width: 220px;">
+  <!-- Toggle + Title -->
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="fw-semibold d-none d-md-inline sidebar-title">Menu</span>
+    <button id="sidebarToggle" class="btn btn-sm btn-outline-secondary d-flex align-items-center" type="button" title="Collapse sidebar">
+      ☰
+    </button>
+  </div>
+
+  <!-- Navigation Links -->
+  <ul class="nav nav-pills flex-column mb-auto">
+    <li class="nav-item">
+      <a href="../dashboard.html" class="nav-link d-flex align-items-center gap-2 sidebar-link active">
+        <span class="sidebar-icon">🏠</span><span class="sidebar-text">Dashboard</span>
+      </a>
+    </li>
+    <li>
+      <a href="inspection.html" class="nav-link d-flex align-items-center gap-2 sidebar-link">
+        <span class="sidebar-icon">📝</span><span class="sidebar-text">Inspection Entry</span>
+      </a>
+    </li>
+    <li>
+      <a href="reports.html" class="nav-link d-flex align-items-center gap-2 sidebar-link">
+        <span class="sidebar-icon">📊</span><span class="sidebar-text">Reports</span>
+      </a>
+    </li>
+    <li>
+      <a href="analysis.html" class="nav-link d-flex align-items-center gap-2 sidebar-link">
+        <span class="sidebar-icon">📈</span><span class="sidebar-text">Analysis</span>
+      </a>
+    </li>
+    <li>
+      <a href="monthly.html" class="nav-link d-flex align-items-center gap-2 sidebar-link">
+        <span class="sidebar-icon">📅</span><span class="sidebar-text">Monthly Summary</span>
+      </a>
+    </li>
+  </ul>
+
+  <hr class="my-3">
+
+  <!-- Profile Dropdown -->
+  <div class="dropdown text-center mt-auto">
+    <a href="#" class="d-flex align-items-center justify-content-center link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+      <span class="sidebar-icon fs-5">👤</span>
+      <span class="sidebar-text ms-2 d-none d-md-inline">Profile</span>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end text-small shadow">
+      <li><a class="dropdown-item" href="#"><span>⚙️</span> Settings</a></li>
+      <li><a class="dropdown-item" href="#"><span>📋</span> My Reports</a></li>
+      <li><hr class="dropdown-divider"></li>
+      <li><a class="dropdown-item" href="../login.html"><span>🚪</span> Logout</a></li>
+    </ul>
+  </div>
+</aside>
+
+<style>
+  .sidebar { background-color: #f8f9fa; transition: all 0.3s ease; z-index: 1050; }
+  .sidebar.collapsed { min-width: 70px !important; max-width: 70px; }
+  .sidebar.collapsed .sidebar-text, .sidebar.collapsed .sidebar-title { display: none !important; }
+  .sidebar.collapsed .nav-link { justify-content: center; }
+  .sidebar.collapsed .dropdown-toggle::after { display: none; }
+
+  .sidebar-link { padding: 0.7rem 1rem; color: #333; font-weight: 500; border-radius: 10px; transition: all 0.3s ease; }
+  .sidebar-link:hover { background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); transform: translateX(5px); }
+  .sidebar-link.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; }
+
+  .sidebar-icon { font-size: 1.2rem; transition: transform 0.3s ease; }
+  .sidebar-link:hover .sidebar-icon { transform: scale(1.2) rotate(10deg); }
+
+  .dropdown-menu { border: none; box-shadow: 0 8px 32px rgba(0,0,0,0.12); border-radius: 12px; animation: dropdownSlide 0.3s ease-out; }
+  @keyframes dropdownSlide { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .dropdown-item { padding: 0.7rem 1rem; transition: all 0.3s ease; border-radius: 8px; margin: 0.2rem 0.5rem; }
+  .dropdown-item:hover { background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1)); transform: translateX(5px); }
+
+  /* Mobile slide-in/out */
+  @media (max-width: 991px) {
+    .sidebar { position: fixed; top: 56px; left: 0; height: calc(100% - 56px); width: 220px;
+               transform: translateX(0); border-right: 1px solid #ddd; box-shadow: 0 0 20px rgba(0,0,0,0.15); }
+    .sidebar.collapsed { transform: translateX(-100%); }
+  }
+</style>
