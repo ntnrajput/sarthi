@@ -1,10 +1,10 @@
-<!-- ✅ Enhanced Fixed Navbar with Correct Relative Paths -->
+<!-- ✅ Enhanced Fixed Navbar with Project-Absolute Paths for GitHub Pages -->
 <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom fixed-top shadow-sm">
   <div class="container-fluid">
 
-    <!-- ✅ Logo / Brand (back to dashboard at root) -->
-    <a class="navbar-brand fw-semibold d-flex align-items-center" href="../dashboard.html">
-      <img src="../assets/img/ri_logo.png" alt="RITES Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+    <!-- ✅ Logo / Brand (always goes to /sarthi/dashboard.html) -->
+    <a class="navbar-brand fw-semibold d-flex align-items-center" href="/sarthi/dashboard.html">
+      <img src="/sarthi/assets/img/ri_logo.png" alt="RITES Logo" style="width: 50px; height: 50px; margin-right: 10px;">
       <div>
         <div style="font-size: 1.5rem; line-height: 1; font-weight: 700;">
           SARTHI
@@ -27,32 +27,32 @@
 
         <!-- ✅ Dashboard -->
         <li class="nav-item">
-          <a class="nav-link" href="../dashboard.html">
+          <a class="nav-link" href="/sarthi/dashboard.html">
             <span class="nav-icon">🏠</span> Dashboard
           </a>
         </li>
 
-        <!-- ✅ Other Pages -->
+        <!-- ✅ Pages inside /sarthi/pages -->
         <li class="nav-item">
-          <a class="nav-link" href="inspection.html">
+          <a class="nav-link" href="/sarthi/pages/inspection.html">
             <span class="nav-icon">📝</span> Inspection
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="reports.html">
+          <a class="nav-link" href="/sarthi/pages/reports.html">
             <span class="nav-icon">📊</span> Reports
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="analysis.html">
+          <a class="nav-link" href="/sarthi/pages/analysis.html">
             <span class="nav-icon">📈</span> Analysis
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="monthly.html">
+          <a class="nav-link" href="/sarthi/pages/monthly.html">
             <span class="nav-icon">📅</span> Monthly
           </a>
         </li>
@@ -75,30 +75,32 @@
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
-              <a class="dropdown-item" href="../login.html">
+              <a class="dropdown-item" href="/sarthi/login.html">
                 <span>🚪</span> Logout
               </a>
             </li>
           </ul>
         </li>
+
       </ul>
     </div>
   </div>
 </nav>
 
 <style>
+  /* Keep content clear of fixed navbar */
   body { padding-top: 80px; }
 
+  /* ICON ANIMATION */
   .nav-icon {
     display: inline-block;
     margin-right: 6px;
     font-size: 1.1em;
     transition: transform 0.3s ease;
   }
-  .nav-link:hover .nav-icon {
-    transform: scale(1.2) rotate(10deg);
-  }
+  .nav-link:hover .nav-icon { transform: scale(1.2) rotate(10deg); }
 
+  /* Dropdown styling */
   .dropdown-menu {
     border: none;
     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
@@ -110,7 +112,6 @@
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
   }
-
   .dropdown-item {
     padding: 0.7rem 1.2rem;
     transition: all 0.3s ease;
@@ -123,6 +124,7 @@
   }
   .dropdown-item span { margin-right: 8px; }
 
+  /* Mobile tweaks */
   @media (max-width: 991px) {
     .nav-link { padding: 0.8rem 1rem !important; margin: 0.2rem 0; }
     .nav-icon { margin-right: 10px; }
