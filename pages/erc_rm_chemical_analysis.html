@@ -103,7 +103,6 @@
       for (let lot = 1; lot <= lotCount; lot++) {
         const table = document.createElement('div');
         table.className = 'mb-4';
-
         table.innerHTML = `
           <h5 class="mb-3 fw-bold text-primary">Lot ${lot} - Chemical Analysis</h5>
           <div class="table-responsive">
@@ -224,7 +223,12 @@
 
       console.log('✅ Chemical Analysis Data:', { result, remarks });
       alert('✅ Chemical Analysis Data saved successfully!');
-      // window.location.href = '/pages/erc_raw_material_inspection_dashboard.html';
+    });
+
+    // ✅ Set default lots to 1 and trigger table rendering
+    window.addEventListener('DOMContentLoaded', () => {
+      lotInput.value = 1;
+      lotInput.dispatchEvent(new Event('input'));
     });
   </script>
 </body>
