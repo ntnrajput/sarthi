@@ -1,10 +1,10 @@
-<!-- Enhanced Fixed Navbar with Dashboard Link -->
+<!-- ✅ Enhanced Fixed Navbar with Relative Links -->
 <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom fixed-top shadow-sm">
   <div class="container-fluid">
 
     <!-- Logo / Brand -->
-    <a class="navbar-brand fw-semibold d-flex align-items-center" href="/dashboard.html">
-      <img src="../assets/img/ri_logo.png" alt="RITES Logo" style="width: 50px; height: 50px; margin-right: 10px;">
+    <a class="navbar-brand fw-semibold d-flex align-items-center" href="dashboard.html">
+      <img src="assets/img/ri_logo.png" alt="RITES Logo" style="width: 50px; height: 50px; margin-right: 10px;">
       <div>
         <div style="font-size: 1.5rem; line-height: 1; font-weight: 700;">
           SARTHI
@@ -27,25 +27,25 @@
 
         <!-- Dashboard Link -->
         <li class="nav-item">
-          <a class="nav-link" href="/dashboard.html">
+          <a class="nav-link" href="dashboard.html">
             <span class="nav-icon">🏠</span> Dashboard
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="/pages/inspection.html">
+          <a class="nav-link" href="pages/inspection.html">
             <span class="nav-icon">📝</span> Inspection
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="/pages/reports.html">
+          <a class="nav-link" href="pages/reports.html">
             <span class="nav-icon">📊</span> Reports
           </a>
         </li>
 
         <li class="nav-item">
-          <a class="nav-link" href="/pages/analysis.html">
+          <a class="nav-link" href="pages/analysis.html">
             <span class="nav-icon">📈</span> Analysis
           </a>
         </li>
@@ -86,12 +86,8 @@
 </nav>
 
 <style>
-  /* Add space to prevent content from going under fixed navbar */
-  body {
-    padding-top: 80px; /* Adjust to match navbar height */
-  }
+  body { padding-top: 80px; }
 
-  /* ICON ANIMATION */
   .nav-icon {
     display: inline-block;
     margin-right: 6px;
@@ -102,7 +98,6 @@
     transform: scale(1.2) rotate(10deg);
   }
 
-  /* Dropdown styling */
   .dropdown-menu {
     border: none;
     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
@@ -110,16 +105,9 @@
     margin-top: 0.5rem;
     animation: dropdownSlide 0.3s ease-out;
   }
-
   @keyframes dropdownSlide {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .dropdown-item {
@@ -128,25 +116,15 @@
     border-radius: 8px;
     margin: 0.2rem 0.5rem;
   }
-
   .dropdown-item:hover {
     background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
     transform: translateX(5px);
   }
+  .dropdown-item span { margin-right: 8px; }
 
-  .dropdown-item span {
-    margin-right: 8px;
-  }
-
-  /* Mobile adjustments */
   @media (max-width: 991px) {
-    .nav-link {
-      padding: 0.8rem 1rem !important;
-      margin: 0.2rem 0;
-    }
-    .nav-icon {
-      margin-right: 10px;
-    }
+    .nav-link { padding: 0.8rem 1rem !important; margin: 0.2rem 0; }
+    .nav-icon { margin-right: 10px; }
   }
 </style>
 
@@ -155,9 +133,7 @@
   document.addEventListener('click', (e) => {
     if (e.target.id === 'globalSidebarToggle') {
       const sidebar = document.getElementById('sidebar');
-      if (sidebar) {
-        sidebar.classList.toggle('collapsed');
-      }
+      if (sidebar) sidebar.classList.toggle('collapsed');
     }
   });
 </script>
