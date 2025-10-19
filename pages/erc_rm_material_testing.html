@@ -64,9 +64,9 @@
       </div>
 
       <!-- 💾 Submit -->
-      <div class="d-flex justify-content-center">
+      <div class="d-flex justify-content-center mb-5">
         <button type="button" class="btn btn-primary px-5" id="submitChemical">
-          Submit Analysis
+          Save Analysis
         </button>
       </div>
     </div>
@@ -105,6 +105,10 @@
         table.className = 'mb-4';
         table.innerHTML = `
           <h5 class="mb-3 fw-bold text-primary">Lot ${lot} - Chemical Analysis</h5>
+          <div class="mb-3">
+            <label for="heatNo_${lot}" class="form-label fw-semibold">Heat No.</label>
+            <input type="text" id="heatNo_${lot}" class="form-control" placeholder="Enter Heat Number">
+          </div>
           <div class="table-responsive">
             <table class="table table-bordered align-middle text-center">
               <thead class="table-light">
@@ -223,6 +227,7 @@
 
       console.log('✅ Chemical Analysis Data:', { result, remarks });
       alert('✅ Chemical Analysis Data saved successfully!');
+      window.location.href = '/sarthi/pages/erc_raw_material_inspection_dashboard.html';
     });
 
     // ✅ Set default lots to 1 and trigger table rendering

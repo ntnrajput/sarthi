@@ -1,1 +1,975 @@
-<!-- analysis.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SARTHI - Enhanced Analysis</title>
+
+  <!-- ✅ Bootstrap & AOS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  
+  <!-- ✅ Correct relative asset path -->
+  <link href="../assets/css/styles.css" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary: #667eea;
+      --success: #198754;
+      --danger: #dc3545;
+      --warning: #ffc107;
+      --info: #0dcaf0;
+    }
+    .page-content { padding-bottom: 5rem; }
+    .card { border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s; }
+    .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    .card h6 { font-weight: 700; color: #2d3748; }
+    .kpi { position: relative; overflow: hidden; }
+    .kpi .label { color:#6c757d; font-size:.85rem; margin-bottom:.25rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .kpi .value { font-size:1.8rem; font-weight:700; }
+    .kpi .trend { font-size: 0.85rem; margin-top: 0.5rem; }
+    .kpi .icon { position: absolute; right: 1rem; top: 1rem; font-size: 2rem; opacity: 0.1; }
+    canvas.chart-equal-height { height: 300px !important; }
+    th.sortable { cursor:pointer; user-select: none; }
+    th.sortable::after { content:" ⇅"; font-size:0.8em; color:#999; }
+    th.sortable.asc::after { content:" ↑"; color:#667eea; }
+    th.sortable.desc::after { content:" ↓"; color:#667eea; }
+    .badge-trend-up { background: rgba(25,135,84,.1); color:#198754; font-weight: 600; }
+    .badge-trend-down { background: rgba(220,53,69,.1); color:#dc3545; font-weight: 600; }
+    .badge-trend-neutral { background: rgba(108,117,125,.1); color:#6c757d; font-weight: 600; }
+    .search-bar { max-width: 250px; }
+    .filter-chip { display: inline-block; padding: 0.25rem 0.75rem; margin: 0.25rem; background: var(--primary); color: white; border-radius: 20px; font-size: 0.85rem; }
+    .insight-card { border-left: 4px solid var(--primary); background: linear-gradient(135deg, #667eea15 0%, transparent 100%); }
+    .comparison-bar { height: 6px; background: #e9ecef; border-radius: 3px; overflow: hidden; margin-top: 0.5rem; }
+    .comparison-bar-fill { height: 100%; background: linear-gradient(90deg, var(--danger) 0%, var(--warning) 50%, var(--success) 100%); transition: width 0.3s; }
+    .stats-mini { font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; }
+    .heatmap-cell { padding: 0.5rem; text-align: center; font-weight: 600; border-radius: 4px; margin: 2px; }
+    .modal-lg { max-width: 900px; }
+    .tab-pane { animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .metric-card { border-left: 4px solid; }
+    .metric-card.danger { border-color: var(--danger); }
+    .metric-card.warning { border-color: var(--warning); }
+    .metric-card.success { border-color: var(--success); }
+  </style>
+</head>
+<body>
+  <!-- ✅ Navbar -->
+  <div id="navbar-container"></div>
+
+  <div class="container-fluid page-content py-4">
+    <!-- Header with Actions -->
+    <div class="d-flex justify-content-between align-items-center mb-4" data-aos="fade-up">
+      <div>
+        <h1 class="h3 mb-1">Advanced Analysis Dashboard</h1>
+        <p class="text-muted mb-0">Comprehensive quality insights and trends</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-outline-primary" id="btnRefresh">🔄 Refresh</button>
+        <button class="btn btn-outline-primary" id="btnCompare">📊 Compare</button>
+        <button class="btn btn-primary" id="btnExport">⬇️ Export</button>
+      </div>
+    </div>
+
+    <!-- Enhanced Filters -->
+    <div class="card mb-4" data-aos="fade-up" data-aos-delay="50">
+      <div class="card-body">
+        <div class="row g-3 align-items-end">
+          <!-- Date Range -->
+          <div class="col-12 col-md-2">
+            <label class="form-label">From (Month)</label>
+            <input type="month" class="form-control" id="fromMonth">
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label">To (Month)</label>
+            <input type="month" class="form-control" id="toMonth">
+          </div>
+
+          <!-- Product Toggle -->
+          <div class="col-12 col-md-8">
+            <label class="form-label d-block">Product</label>
+            <div class="btn-group flex-wrap" role="group">
+              <input type="radio" class="btn-check" name="productToggle" id="btnERC" autocomplete="off" checked>
+              <label class="btn btn-outline-primary" for="btnERC">ERC</label>
+              <input type="radio" class="btn-check" name="productToggle" id="btnSleeper" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnSleeper">Sleeper</label>
+              <input type="radio" class="btn-check" name="productToggle" id="btnGRSP" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnGRSP">GRSP</label>
+              <input type="radio" class="btn-check" name="productToggle" id="btnElastomeric" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnElastomeric">Elastomeric Pad</label>
+              <input type="radio" class="btn-check" name="productToggle" id="btnRail" autocomplete="off">
+              <label class="btn btn-outline-primary" for="btnRail">Rail</label>
+            </div>
+          </div>
+
+          <!-- Advanced Filters Row 2 -->
+          <div class="col-12 col-md-3">
+            <label class="form-label">Stage</label>
+            <select id="stageSelect" class="form-select">
+              <option value="">All Stages</option>
+              <option>Raw Material</option>
+              <option>Process</option>
+              <option>Final</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label">Rejection Threshold (%)</label>
+            <input type="number" class="form-control" id="thresholdInput" placeholder="e.g., 5" min="0" max="100" step="0.1">
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label">Top N Manufacturers</label>
+            <input type="number" class="form-control" id="topNInput" placeholder="Show top..." min="1" value="20">
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="col-12 col-md-3">
+            <label class="form-label d-block opacity-0">Actions</label>
+            <div class="btn-group w-100">
+              <button class="btn btn-sm btn-outline-secondary" id="quickLast30">30d</button>
+              <button class="btn btn-sm btn-outline-secondary" id="quickLast90">90d</button>
+              <button class="btn btn-sm btn-outline-secondary" id="quickYTD">YTD</button>
+              <button class="btn btn-sm btn-outline-secondary" id="quickAll">All</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Active Filters Display -->
+        <div id="activeFilters" class="mt-3"></div>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row g-3 mb-3" data-aos="fade-up" data-aos-delay="100">
+      <div class="col-6 col-lg-3">
+        <div class="card kpi h-100">
+          <div class="card-body">
+            <span class="icon">📊</span>
+            <div class="label">Rejection Rate</div>
+            <div class="value text-danger" id="kpiRate">–</div>
+            <div class="trend" id="kpiRateTrend"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card kpi h-100">
+          <div class="card-body">
+            <span class="icon">🔍</span>
+            <div class="label">Inspected Qty</div>
+            <div class="value text-primary" id="kpiInspected">–</div>
+            <div class="stats-mini" id="kpiInspectedAvg"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card kpi h-100">
+          <div class="card-body">
+            <span class="icon">❌</span>
+            <div class="label">Rejected Qty</div>
+            <div class="value text-danger" id="kpiRejected">–</div>
+            <div class="stats-mini" id="kpiRejectedAvg"></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-6 col-lg-3">
+        <div class="card kpi h-100">
+          <div class="card-body">
+            <span class="icon">🏭</span>
+            <div class="label">Manufacturers</div>
+            <div class="value text-info" id="kpiMfrs">–</div>
+            <div class="stats-mini" id="kpiMfrsAbove"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI Insights -->
+    <div class="card insight-card mb-3" data-aos="fade-up" data-aos-delay="120">
+      <div class="card-body">
+        <h6>💡 Key Insights</h6>
+        <div id="insightsContainer" class="small"></div>
+      </div>
+    </div>
+
+    <!-- Tabbed Charts Section -->
+    <div class="card mb-3" data-aos="fade-up" data-aos-delay="150">
+      <div class="card-body">
+        <ul class="nav nav-tabs" role="tablist">
+          <li class="nav-item">
+            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCharts">📈 Charts</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabHeatmap">🔥 Heatmap</button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabDistribution">📊 Distribution</button>
+          </li>
+        </ul>
+        <div class="tab-content pt-3">
+          <!-- Charts Tab -->
+          <div class="tab-pane fade show active" id="tabCharts">
+            <div class="row g-3">
+              <div class="col-lg-6">
+                <h6>Pareto of Rejection Reasons</h6>
+                <canvas id="paretoChart" class="chart-equal-height"></canvas>
+              </div>
+              <div class="col-lg-6">
+                <h6>Stage Distribution</h6>
+                <canvas id="stageChart" class="chart-equal-height"></canvas>
+              </div>
+              <div class="col-12">
+                <h6>Rejection Rate Trend (Monthly)</h6>
+                <canvas id="trendChart" class="chart-equal-height"></canvas>
+              </div>
+              <div class="col-lg-6">
+                <h6>Top 10 Sub-Reasons</h6>
+                <canvas id="subReasonChart" class="chart-equal-height"></canvas>
+              </div>
+              <div class="col-lg-6">
+                <h6>Stage-wise Rejection Comparison</h6>
+                <canvas id="stageComparisonChart" class="chart-equal-height"></canvas>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Heatmap Tab -->
+          <div class="tab-pane fade" id="tabHeatmap">
+            <h6 class="mb-3">Manufacturer × Stage Heatmap</h6>
+            <div id="heatmapContainer" class="table-responsive"></div>
+          </div>
+          
+          <!-- Distribution Tab -->
+          <div class="tab-pane fade" id="tabDistribution">
+            <div class="row g-3">
+              <div class="col-lg-6">
+                <h6>Rejection Rate Distribution</h6>
+                <canvas id="histogramChart" class="chart-equal-height"></canvas>
+              </div>
+              <div class="col-lg-6">
+                <h6>Volume vs Quality Scatter</h6>
+                <canvas id="scatterChart" class="chart-equal-height"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manufacturer Leaderboard -->
+    <div class="card" data-aos="fade-up" data-aos-delay="200">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0">🏆 Manufacturer Performance Leaderboard</h6>
+          <div class="d-flex gap-2">
+            <input id="manufacturerSearch" class="form-control search-bar" placeholder="🔍 Search...">
+            <button class="btn btn-sm btn-outline-primary" id="btnViewDetails">View Details</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle">
+            <thead class="table-light">
+              <tr>
+                <th class="sortable" data-sort="manufacturer">Manufacturer</th>
+                <th class="text-end sortable" data-sort="accepted">Accepted</th>
+                <th class="text-end sortable" data-sort="rejected">Rejected</th>
+                <th class="text-end sortable" data-sort="rate">Reject %</th>
+                <th class="text-end sortable" data-sort="rawRate">Raw %</th>
+                <th class="text-end sortable" data-sort="processRate">Process %</th>
+                <th class="text-end sortable" data-sort="finalRate">Final %</th>
+                <th class="sortable" data-sort="topReason">Top Reason</th>
+                <th class="sortable" data-sort="topSubReason">Top Sub</th>
+                <th class="text-center">Trend</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboardBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison Modal -->
+  <div class="modal fade" id="compareModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Period Comparison</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3 mb-3">
+            <div class="col-6">
+              <label class="form-label">Period 1</label>
+              <input type="month" class="form-control" id="comparePeriod1">
+            </div>
+            <div class="col-6">
+              <label class="form-label">Period 2</label>
+              <input type="month" class="form-control" id="comparePeriod2">
+            </div>
+          </div>
+          <button class="btn btn-primary w-100 mb-3" id="btnRunComparison">Compare Periods</button>
+          <div id="comparisonResults"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📌 Footer -->
+  <footer class="border-top py-3 mt-4 text-center small text-muted">
+    © SARTHI - QMIS — v0.1
+  </footer>
+
+  <!-- ✅ JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  
+  <!-- ✅ Correct relative path to app.js - Load navbar FIRST -->
+  <script src="../assets/js/app.js"></script>
+  
+  <script>
+    // Initialize AOS after navbar loads
+    document.addEventListener('DOMContentLoaded', function() {
+      AOS.init({ duration: 800, once: true });
+    });
+
+    // Data Generation
+    const PRODUCTS = ['ERC','Sleeper','GRSP','Elastomeric Pad','Rail'];
+    const STAGES = ['Raw Material','Process','Final'];
+    const REASONS = [
+      {reason:'Dimension', subs:['Dia high','Dia low','Length out']},
+      {reason:'Visual', subs:['Crack','Rust','Scale']},
+      {reason:'Chemical', subs:['C out','P high','S high']},
+      {reason:'Hardness', subs:['Below min','Above max','Inconsistent']},
+      {reason:'Marking', subs:['Missing','Illegible']},
+      {reason:'Inclusion', subs:['A/B high','C incl']},
+      {reason:'Decarb Depth', subs:['Above tol']}
+    ];
+    const MONTHS = ['2025-01','2025-02','2025-03','2025-04','2025-05','2025-06'];
+
+    const DATA = [];
+    PRODUCTS.forEach(prod=>{
+      for(let m=1;m<=20;m++){
+        const mfr = `${prod}_Mfr_${m}`;
+        MONTHS.forEach(mon=>{
+          STAGES.forEach(st=>{
+            const insp = 500+Math.floor(Math.random()*800);
+            const rej = Math.floor(insp* (0.01+Math.random()*0.05));
+            const {reason,subs} = REASONS[Math.floor(Math.random()*REASONS.length)];
+            const sub_reason = subs[Math.floor(Math.random()*subs.length)];
+            DATA.push({month:mon,product:prod,stage:st,manufacturer:mfr,inspected:insp,rejected:rej,reason,sub_reason});
+          });
+        });
+      }
+    });
+
+    // DOM Elements
+    const fromMonth = document.getElementById('fromMonth');
+    const toMonth = document.getElementById('toMonth');
+    const stageSelect = document.getElementById('stageSelect');
+    const manufacturerSearch = document.getElementById('manufacturerSearch');
+    const thresholdInput = document.getElementById('thresholdInput');
+    const topNInput = document.getElementById('topNInput');
+
+    // Initialize Dates
+    (function(){
+      const now = new Date();
+      const toY = now.getFullYear();
+      const toM = (now.getMonth()+1).toString().padStart(2,'0');
+      const from = new Date(toY, now.getMonth()-5, 1);
+      const fY = from.getFullYear();
+      const fM = (from.getMonth()+1).toString().padStart(2,'0');
+      fromMonth.value = `${fY}-${fM}`;
+      toMonth.value = `${toY}-${toM}`;
+      document.getElementById('comparePeriod1').value = `${fY}-${fM}`;
+      document.getElementById('comparePeriod2').value = `${toY}-${toM}`;
+    })();
+
+    function selectedProduct(){
+      return Array.from(document.querySelectorAll('[name="productToggle"]'))
+        .find(r=>r.checked)?.nextElementSibling.textContent.trim();
+    }
+
+    function monthInRange(ym, fromYm, toYm){
+      const d = new Date(ym+'-01');
+      const f = new Date(fromYm+'-01');
+      const t = new Date(toYm+'-01');
+      return d>=f && d<=t;
+    }
+
+    function filterData(){
+      const p = selectedProduct();
+      const s = stageSelect.value;
+      const from = fromMonth.value;
+      const to = toMonth.value;
+      const mfr = manufacturerSearch.value.trim().toLowerCase();
+      return DATA.filter(r=>
+        r.product===p &&
+        monthInRange(r.month,from,to) &&
+        (!s || r.stage===s) &&
+        (!mfr || r.manufacturer.toLowerCase().includes(mfr))
+      );
+    }
+
+    function ratePct(r,j){ return j ? +(r*100/j).toFixed(2) : 0; }
+
+    function aggregateLeaderboard(rows){
+      const map = new Map();
+      rows.forEach(r=>{
+        const v = map.get(r.manufacturer) || {
+          manufacturer:r.manufacturer,
+          accepted:0,rejected:0,
+          raw:{insp:0,rej:0},
+          process:{insp:0,rej:0},
+          final:{insp:0,rej:0},
+          reasons:{}, subReasons:{}, monthData:{}
+        };
+        v.accepted += (r.inspected - r.rejected);
+        v.rejected += r.rejected;
+        if(r.stage==='Raw Material'){ v.raw.insp+=r.inspected; v.raw.rej+=r.rejected; }
+        if(r.stage==='Process'){ v.process.insp+=r.inspected; v.process.rej+=r.rejected; }
+        if(r.stage==='Final'){ v.final.insp+=r.inspected; v.final.rej+=r.rejected; }
+        v.reasons[r.reason]=(v.reasons[r.reason]||0)+r.rejected;
+        v.subReasons[r.sub_reason]=(v.subReasons[r.sub_reason]||0)+r.rejected;
+        
+        if(!v.monthData[r.month]) v.monthData[r.month]={insp:0,rej:0};
+        v.monthData[r.month].insp+=r.inspected;
+        v.monthData[r.month].rej+=r.rejected;
+        
+        map.set(r.manufacturer,v);
+      });
+      
+      const arr = Array.from(map.values()).map(v=>{
+        const months = Object.keys(v.monthData).sort();
+        const rates = months.map(m=>ratePct(v.monthData[m].rej, v.monthData[m].insp));
+        const trend = rates.length>1 ? (rates[rates.length-1]-rates[0]).toFixed(2) : 0;
+        
+        return {
+          ...v,
+          rate: ratePct(v.rejected, v.rejected+v.accepted),
+          rawRate: ratePct(v.raw.rej, v.raw.insp),
+          processRate: ratePct(v.process.rej, v.process.insp),
+          finalRate: ratePct(v.final.rej, v.final.insp),
+          topReason: Object.entries(v.reasons).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-',
+          topSubReason: Object.entries(v.subReasons).sort((a,b)=>b[1]-a[1])[0]?.[0] || '-',
+          trend: parseFloat(trend)
+        };
+      });
+      
+      const threshold = parseFloat(thresholdInput.value) || 0;
+      const topN = parseInt(topNInput.value) || arr.length;
+      
+      return arr.filter(v=>v.rate>=threshold).slice(0,topN);
+    }
+
+    function aggregatePareto(rows){
+      const map = new Map();
+      rows.forEach(r=> map.set(r.reason,(map.get(r.reason)||0)+r.rejected));
+      const arr = Array.from(map,([reason,rejected])=>({reason,rejected}));
+      arr.sort((a,b)=>b.rejected-a.rejected);
+      const total = arr.reduce((s,a)=>s+a.rejected,0);
+      let run=0;
+      const cum=arr.map(a=>{run+=a.rejected;return +(run*100/total).toFixed(2)});
+      return {labels:arr.map(a=>a.reason),rejected:arr.map(a=>a.rejected),cumulative:cum};
+    }
+
+    function aggregateSubReasons(rows){
+      const map = new Map();
+      rows.forEach(r=> map.set(r.sub_reason,(map.get(r.sub_reason)||0)+r.rejected));
+      const arr = Array.from(map,([sub,rejected])=>({sub,rejected}));
+      arr.sort((a,b)=>b.rejected-a.rejected).splice(10);
+      return {labels:arr.map(a=>a.sub),data:arr.map(a=>a.rejected)};
+    }
+
+    function aggregateStage(rows){
+      const map = { 'Raw Material':0,'Process':0,'Final':0 };
+      rows.forEach(r=>map[r.stage]+=r.rejected);
+      return { labels:Object.keys(map), data:Object.values(map) };
+    }
+
+    function aggregateTrend(rows){
+      const map = new Map();
+      rows.forEach(r=>{
+        const t=map.get(r.month)||{insp:0,rej:0};
+        t.insp+=r.inspected;t.rej+=r.rejected;
+        map.set(r.month,t);
+      });
+      const months=Array.from(map.keys()).sort();
+      return { labels:months, data:months.map(m=>ratePct(map.get(m).rej,map.get(m).insp)) };
+    }
+
+    function kpis(rows){
+      const insp = rows.reduce((s,r)=>s+r.inspected,0);
+      const rej = rows.reduce((s,r)=>s+r.rejected,0);
+      const mfrs = new Set(rows.map(r=>r.manufacturer)).size;
+      const avgInsp = Math.round(insp/Math.max(mfrs,1));
+      const avgRej = Math.round(rej/Math.max(mfrs,1));
+      
+      const lb = aggregateLeaderboard(rows);
+      const above5 = lb.filter(m=>m.rate>5).length;
+      
+      return {insp,rej,rate:ratePct(rej,insp),mfrs,avgInsp,avgRej,above5};
+    }
+
+    function generateInsights(rows, kpi){
+      const insights = [];
+      const lb = aggregateLeaderboard(rows);
+      
+      if(kpi.rate > 3) insights.push(`⚠️ Overall rejection rate of ${kpi.rate}% is above target threshold.`);
+      else if(kpi.rate < 1.5) insights.push(`✅ Excellent quality performance with ${kpi.rate}% rejection rate.`);
+      
+      const worst = lb.sort((a,b)=>b.rate-a.rate)[0];
+      if(worst) insights.push(`📉 ${worst.manufacturer} has highest rejection rate at ${worst.rate}% (${worst.topReason}).`);
+      
+      const best = lb.sort((a,b)=>a.rate-b.rate)[0];
+      if(best && best.rate < 1) insights.push(`🌟 ${best.manufacturer} maintains excellent quality at ${best.rate}% rejection.`);
+      
+      if(kpi.above5 > 0) insights.push(`⚡ ${kpi.above5} manufacturer(s) exceed 5% rejection threshold.`);
+      
+      const pareto = aggregatePareto(rows);
+      if(pareto.labels[0]) insights.push(`🎯 Top rejection driver: ${pareto.labels[0]} (${((pareto.rejected[0]/kpi.rej)*100).toFixed(1)}% of all rejections).`);
+      
+      return insights;
+    }
+
+    // Charts
+    let paretoChart,stageChart,trendChart,subReasonChart,stageComparisonChart,histogramChart,scatterChart;
+
+    function renderPareto(p){
+      if(paretoChart) paretoChart.destroy();
+      const ctx = document.getElementById('paretoChart');
+      paretoChart=new Chart(ctx,{
+        type:'bar',
+        data:{
+          labels:p.labels,
+          datasets:[
+            {type:'bar',label:'Rejected Qty',data:p.rejected,backgroundColor:'rgba(220,53,69,0.7)',yAxisID:'y'},
+            {type:'line',label:'Cumulative %',data:p.cumulative,borderColor:'#667eea',yAxisID:'y1',tension:0.3,pointRadius:4,pointHoverRadius:6}
+          ]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:'top'}},
+          scales:{
+            y:{beginAtZero:true,title:{display:true,text:'Quantity'}},
+            y1:{position:'right',min:0,max:100,title:{display:true,text:'Cumulative %'},ticks:{callback:v=>v+'%'}}
+          }
+        }
+      });
+    }
+
+    function renderStage(s){
+      if(stageChart) stageChart.destroy();
+      stageChart=new Chart(document.getElementById('stageChart'),{
+        type:'doughnut',
+        data:{
+          labels:s.labels,
+          datasets:[{data:s.data,backgroundColor:['#667eea','#ffc107','#dc3545'],borderWidth:2,borderColor:'#fff'}]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{position:'top'},tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed+' ('+((ctx.parsed/s.data.reduce((a,b)=>a+b,0))*100).toFixed(1)+'%)'}}}
+        }
+      });
+    }
+
+    function renderTrend(t){
+      if(trendChart) trendChart.destroy();
+      trendChart=new Chart(document.getElementById('trendChart'),{
+        type:'line',
+        data:{
+          labels:t.labels,
+          datasets:[{
+            label:'Rejection %',
+            data:t.data,
+            borderColor:'#667eea',
+            backgroundColor:'rgba(102,126,234,0.1)',
+            tension:0.3,
+            fill:true,
+            pointRadius:4,
+            pointHoverRadius:6
+          }]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true,title:{display:true,text:'Rejection %'}}}
+        }
+      });
+    }
+
+    function renderSubReasonChart(sr){
+      if(subReasonChart) subReasonChart.destroy();
+      subReasonChart=new Chart(document.getElementById('subReasonChart'),{
+        type:'bar',
+        data:{
+          labels:sr.labels,
+          datasets:[{label:'Rejected Qty',data:sr.data,backgroundColor:'rgba(255,193,7,0.7)'}]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          indexAxis:'y',
+          plugins:{legend:{display:false}},
+          scales:{x:{beginAtZero:true}}
+        }
+      });
+    }
+
+    function renderStageComparison(rows){
+      const stages = ['Raw Material','Process','Final'];
+      const data = stages.map(st=>{
+        const filtered = rows.filter(r=>r.stage===st);
+        const insp = filtered.reduce((s,r)=>s+r.inspected,0);
+        const rej = filtered.reduce((s,r)=>s+r.rejected,0);
+        return ratePct(rej,insp);
+      });
+      
+      if(stageComparisonChart) stageComparisonChart.destroy();
+      stageComparisonChart=new Chart(document.getElementById('stageComparisonChart'),{
+        type:'bar',
+        data:{
+          labels:stages,
+          datasets:[{label:'Rejection %',data:data,backgroundColor:['#667eea','#ffc107','#dc3545']}]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true,title:{display:true,text:'Rejection %'}}}
+        }
+      });
+    }
+
+    function renderHistogram(rows){
+      const lb = aggregateLeaderboard(rows);
+      const rates = lb.map(m=>m.rate);
+      const bins = [0,1,2,3,4,5,7.5,10,15,100];
+      const counts = new Array(bins.length-1).fill(0);
+      rates.forEach(r=>{
+        for(let i=0;i<bins.length-1;i++){
+          if(r>=bins[i] && r<bins[i+1]){counts[i]++;break;}
+        }
+      });
+      const labels = bins.slice(0,-1).map((b,i)=>`${b}-${bins[i+1]}%`);
+      
+      if(histogramChart) histogramChart.destroy();
+      histogramChart=new Chart(document.getElementById('histogramChart'),{
+        type:'bar',
+        data:{
+          labels:labels,
+          datasets:[{label:'# of Manufacturers',data:counts,backgroundColor:'rgba(102,126,234,0.7)'}]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false}},
+          scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}
+        }
+      });
+    }
+
+    function renderScatter(rows){
+      const lb = aggregateLeaderboard(rows);
+      const data = lb.map(m=>({x:m.accepted+m.rejected,y:m.rate,label:m.manufacturer}));
+      
+      if(scatterChart) scatterChart.destroy();
+      scatterChart=new Chart(document.getElementById('scatterChart'),{
+        type:'scatter',
+        data:{
+          datasets:[{
+            label:'Manufacturers',
+            data:data,
+            backgroundColor:'rgba(102,126,234,0.6)',
+            pointRadius:6,
+            pointHoverRadius:8
+          }]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{
+            legend:{display:false},
+            tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: ${ctx.parsed.x.toLocaleString()} units, ${ctx.parsed.y}%`}}
+          },
+          scales:{
+            x:{title:{display:true,text:'Total Volume'}},
+            y:{beginAtZero:true,title:{display:true,text:'Rejection %'}}
+          }
+        }
+      });
+    }
+
+    function renderHeatmap(rows){
+      const lb = aggregateLeaderboard(rows);
+      const container = document.getElementById('heatmapContainer');
+      
+      if(lb.length===0){
+        container.innerHTML='<p class="text-muted">No data available</p>';
+        return;
+      }
+      
+      const html = `
+        <table class="table table-bordered table-sm">
+          <thead>
+            <tr>
+              <th>Manufacturer</th>
+              <th class="text-center">Raw Material</th>
+              <th class="text-center">Process</th>
+              <th class="text-center">Final</th>
+              <th class="text-center">Overall</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${lb.slice(0,15).map(m=>`
+              <tr>
+                <td>${m.manufacturer}</td>
+                <td class="text-center"><div class="heatmap-cell" style="background:${getHeatColor(m.rawRate)};color:${m.rawRate>5?'white':'black'}">${m.rawRate}%</div></td>
+                <td class="text-center"><div class="heatmap-cell" style="background:${getHeatColor(m.processRate)};color:${m.processRate>5?'white':'black'}">${m.processRate}%</div></td>
+                <td class="text-center"><div class="heatmap-cell" style="background:${getHeatColor(m.finalRate)};color:${m.finalRate>5?'white':'black'}">${m.finalRate}%</div></td>
+                <td class="text-center"><div class="heatmap-cell" style="background:${getHeatColor(m.rate)};color:${m.rate>5?'white':'black'}">${m.rate}%</div></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `;
+      container.innerHTML = html;
+    }
+
+    function getHeatColor(rate){
+      if(rate<2) return '#d4edda';
+      if(rate<3) return '#fff3cd';
+      if(rate<5) return '#ffe5d0';
+      if(rate<7) return '#f8d7da';
+      return '#dc3545';
+    }
+
+    // Leaderboard
+    let sortField='rate',sortDir='desc';
+
+    function renderLeaderboard(arr){
+      const body=document.getElementById('leaderboardBody');
+      arr.sort((a,b)=>{
+        let x=a[sortField],y=b[sortField];
+        if(typeof x==='string') x=x.toLowerCase(),y=y.toLowerCase();
+        return sortDir==='asc'?(x>y?1:-1):(x<y?1:-1);
+      });
+      
+      document.querySelectorAll('.sortable').forEach(th=>{
+        th.classList.remove('asc','desc');
+        if(th.dataset.sort===sortField) th.classList.add(sortDir);
+      });
+      
+      body.innerHTML='';
+      arr.forEach(r=>{
+        const trendIcon = r.trend>0.5?'📈':r.trend<-0.5?'📉':'➡️';
+        const trendClass = r.trend>0.5?'badge-trend-down':r.trend<-0.5?'badge-trend-up':'badge-trend-neutral';
+        const tr=document.createElement('tr');
+        tr.innerHTML=`
+          <td><strong>${r.manufacturer}</strong></td>
+          <td class="text-end">${(r.accepted).toLocaleString()}</td>
+          <td class="text-end">${(r.rejected).toLocaleString()}</td>
+          <td class="text-end"><strong>${r.rate}%</strong></td>
+          <td class="text-end">${r.rawRate}%</td>
+          <td class="text-end">${r.processRate}%</td>
+          <td class="text-end">${r.finalRate}%</td>
+          <td>${r.topReason}</td>
+          <td>${r.topSubReason}</td>
+          <td class="text-center"><span class="badge ${trendClass}">${trendIcon} ${Math.abs(r.trend).toFixed(1)}%</span></td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    function updateActiveFilters(){
+      const filters = [];
+      const p = selectedProduct();
+      const s = stageSelect.value;
+      const from = fromMonth.value;
+      const to = toMonth.value;
+      const thresh = thresholdInput.value;
+      const topN = topNInput.value;
+      
+      filters.push(`Product: ${p}`);
+      filters.push(`Period: ${from} to ${to}`);
+      if(s) filters.push(`Stage: ${s}`);
+      if(thresh) filters.push(`Threshold: ≥${thresh}%`);
+      if(topN && topN<100) filters.push(`Top ${topN} shown`);
+      
+      document.getElementById('activeFilters').innerHTML = filters.map(f=>`<span class="filter-chip">${f}</span>`).join('');
+    }
+
+    // Main Refresh
+    function refresh(){
+      const rows=filterData();
+      const pareto=aggregatePareto(rows);
+      const stage=aggregateStage(rows);
+      const trend=aggregateTrend(rows);
+      const subReason=aggregateSubReasons(rows);
+      const lb=aggregateLeaderboard(rows);
+      const k=kpis(rows);
+      const insights=generateInsights(rows,k);
+
+      renderPareto(pareto);
+      renderStage(stage);
+      renderTrend(trend);
+      renderSubReasonChart(subReason);
+      renderStageComparison(rows);
+      renderHistogram(rows);
+      renderScatter(rows);
+      renderHeatmap(rows);
+      renderLeaderboard(lb);
+      updateActiveFilters();
+      
+      document.getElementById('kpiInspected').textContent=k.insp.toLocaleString();
+      document.getElementById('kpiRejected').textContent=k.rej.toLocaleString();
+      document.getElementById('kpiRate').textContent=k.rate+'%';
+      document.getElementById('kpiMfrs').textContent=k.mfrs;
+      
+      document.getElementById('kpiInspectedAvg').textContent=`Avg: ${k.avgInsp.toLocaleString()}/mfr`;
+      document.getElementById('kpiRejectedAvg').textContent=`Avg: ${k.avgRej.toLocaleString()}/mfr`;
+      document.getElementById('kpiMfrsAbove').textContent=`${k.above5} above 5%`;
+      
+      const trendPrev = trend.data.length>1 ? trend.data[trend.data.length-2] : k.rate;
+      const trendChange = (k.rate - trendPrev).toFixed(2);
+      const trendIcon = trendChange>0?'↑':'↓';
+      const trendColor = trendChange>0?'text-danger':'text-success';
+      document.getElementById('kpiRateTrend').innerHTML=`<span class="${trendColor}">${trendIcon} ${Math.abs(trendChange)}% vs prev</span>`;
+      
+      document.getElementById('insightsContainer').innerHTML=insights.map(i=>`<p class="mb-1">${i}</p>`).join('');
+    }
+
+    // Events
+    fromMonth.addEventListener('change',refresh);
+    toMonth.addEventListener('change',refresh);
+    stageSelect.addEventListener('change',refresh);
+    manufacturerSearch.addEventListener('input',refresh);
+    thresholdInput.addEventListener('input',refresh);
+    topNInput.addEventListener('input',refresh);
+    document.querySelectorAll('[name="productToggle"]').forEach(r=>r.addEventListener('change',refresh));
+
+    document.querySelectorAll('.sortable').forEach(th=>{
+      th.addEventListener('click',()=>{
+        const f=th.dataset.sort;
+        if(sortField===f) sortDir=sortDir==='asc'?'desc':'asc';
+        else {sortField=f;sortDir='desc';}
+        refresh();
+      });
+    });
+
+    document.getElementById('quickLast30').addEventListener('click',()=>{ shiftMonths(1); });
+    document.getElementById('quickLast90').addEventListener('click',()=>{ shiftMonths(3); });
+    document.getElementById('quickYTD').addEventListener('click',()=>{
+      const now=new Date();
+      fromMonth.value=`${now.getFullYear()}-01`;
+      toMonth.value=`${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,'0')}`;
+      refresh();
+    });
+    document.getElementById('quickAll').addEventListener('click',()=>{
+      fromMonth.value='2025-01';
+      toMonth.value='2025-06';
+      refresh();
+    });
+
+    function shiftMonths(back){
+      const now=new Date();
+      const toY=now.getFullYear(),toM=(now.getMonth()+1).toString().padStart(2,'0');
+      const from=new Date(toY,now.getMonth()-back,1);
+      const fY=from.getFullYear(),fM=(from.getMonth()+1).toString().padStart(2,'0');
+      fromMonth.value=`${fY}-${fM}`;toMonth.value=`${toY}-${toM}`;refresh();
+    }
+
+    document.getElementById('btnRefresh').addEventListener('click',refresh);
+
+    document.getElementById('btnExport').addEventListener('click',()=>{
+      const rows=filterData();
+      const lb=aggregateLeaderboard(rows);
+      
+      const csv=['Product,Month,Stage,Manufacturer,Inspected,Rejected,Rejection%,Reason,SubReason'];
+      rows.forEach(r=>csv.push([r.product,r.month,r.stage,r.manufacturer,r.inspected,r.rejected,ratePct(r.rejected,r.inspected),r.reason,r.sub_reason].join(',')));
+      
+      csv.push('');
+      csv.push('Manufacturer Summary');
+      csv.push('Manufacturer,Accepted,Rejected,Rejection%,Raw%,Process%,Final%,TopReason,TopSubReason');
+      lb.forEach(m=>csv.push([m.manufacturer,m.accepted,m.rejected,m.rate,m.rawRate,m.processRate,m.finalRate,m.topReason,m.topSubReason].join(',')));
+      
+      const blob=new Blob([csv.join('\n')],{type:'text/csv;charset=utf-8;'});
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url;a.download=`sarthi-analysis-${new Date().toISOString().split('T')[0]}.csv`;a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('btnCompare').addEventListener('click',()=>{
+      new bootstrap.Modal(document.getElementById('compareModal')).show();
+    });
+
+    document.getElementById('btnRunComparison').addEventListener('click',()=>{
+      const p1 = document.getElementById('comparePeriod1').value;
+      const p2 = document.getElementById('comparePeriod2').value;
+      const prod = selectedProduct();
+      
+      const rows1 = DATA.filter(r=>r.product===prod && r.month===p1);
+      const rows2 = DATA.filter(r=>r.product===prod && r.month===p2);
+      
+      const k1 = kpis(rows1);
+      const k2 = kpis(rows2);
+      
+      const rateChange = (k2.rate - k1.rate).toFixed(2);
+      const inspChange = ((k2.insp - k1.insp)/k1.insp*100).toFixed(1);
+      const rejChange = ((k2.rej - k1.rej)/k1.rej*100).toFixed(1);
+      
+      const html = `
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="card metric-card ${Math.abs(rateChange)>1?'danger':'success'}">
+              <div class="card-body">
+                <h6>Rejection Rate</h6>
+                <div class="d-flex justify-content-between">
+                  <span>Period 1: ${k1.rate}%</span>
+                  <span>Period 2: ${k2.rate}%</span>
+                </div>
+                <div class="comparison-bar">
+                  <div class="comparison-bar-fill" style="width:${Math.abs(parseFloat(rateChange))*10}%"></div>
+                </div>
+                <p class="mt-2 mb-0"><strong>${rateChange>0?'↑':'↓'} ${Math.abs(rateChange)}%</strong> change</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card metric-card ${inspChange>0?'success':'warning'}">
+              <div class="card-body">
+                <h6>Inspected Qty</h6>
+                <div class="d-flex justify-content-between">
+                  <span>${k1.insp.toLocaleString()}</span>
+                  <span>${k2.insp.toLocaleString()}</span>
+                </div>
+                <div class="comparison-bar">
+                  <div class="comparison-bar-fill" style="width:${Math.abs(parseFloat(inspChange))}%"></div>
+                </div>
+                <p class="mt-2 mb-0"><strong>${inspChange>0?'↑':'↓'} ${Math.abs(inspChange)}%</strong> change</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card metric-card ${rejChange<0?'success':'danger'}">
+              <div class="card-body">
+                <h6>Rejected Qty</h6>
+                <div class="d-flex justify-content-between">
+                  <span>${k1.rej.toLocaleString()}</span>
+                  <span>${k2.rej.toLocaleString()}</span>
+                </div>
+                <div class="comparison-bar">
+                  <div class="comparison-bar-fill" style="width:${Math.abs(parseFloat(rejChange))}%"></div>
+                </div>
+                <p class="mt-2 mb-0"><strong>${rejChange>0?'↑':'↓'} ${Math.abs(rejChange)}%</strong> change</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('comparisonResults').innerHTML = html;
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded',refresh);
+  </script>
+</body>
+</html>

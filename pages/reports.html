@@ -1,1 +1,753 @@
-<!-- reports.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SARTHI - Reports & Analysis</title>
+
+  <!-- ✅ Bootstrap & AOS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  
+  <!-- ✅ Correct relative asset path -->
+  <link href="../assets/css/styles.css" rel="stylesheet">
+
+  <style>
+    .page-content { padding-bottom: 3rem; }
+    .report-header { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: 0;
+    }
+    .report-card { border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .summary-box { background: #f8f9fa; border-left: 4px solid #667eea; padding: 1rem; margin-bottom: 1.5rem; }
+    .stat-card { border-left: 4px solid; padding: 1rem; background: white; }
+    .stat-card.success { border-color: #198754; }
+    .stat-card.warning { border-color: #ffc107; }
+    .stat-card.danger { border-color: #dc3545; }
+    .stat-card.info { border-color: #0dcaf0; }
+    .table-header { background: #667eea; color: white; }
+    .chart-container { height: 300px; position: relative; }
+    .export-btn-group { position: sticky; top: 80px; z-index: 100; }
+    .filter-section { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+  </style>
+</head>
+<body>
+  <!-- ✅ Navbar -->
+  <div id="navbar-container"></div>
+
+  <div class="container-fluid page-content py-4">
+    <!-- Header -->
+    <div class="row mb-4" data-aos="fade-up">
+      <div class="col-12">
+        <h1 class="h3 mb-1">Reports & Analysis</h1>
+        <p class="text-muted mb-0">Generate and export comprehensive quality reports</p>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="card filter-section mb-4" data-aos="fade-up" data-aos-delay="100">
+      <div class="card-body">
+        <form id="reportFilterForm">
+          <div class="row g-3">
+            <!-- Month Picker -->
+            <div class="col-12 col-md-3">
+              <label class="form-label fw-semibold">Report Month</label>
+              <input type="month" class="form-control" id="reportMonth" required>
+            </div>
+
+            <!-- Product Selection -->
+            <div class="col-12 col-md-9">
+              <label class="form-label fw-semibold d-block">Product</label>
+              <div class="btn-group flex-wrap" role="group">
+                <input type="radio" class="btn-check" name="product" id="prodERC" value="ERC" autocomplete="off" checked>
+                <label class="btn btn-outline-primary" for="prodERC">ERC</label>
+                
+                <input type="radio" class="btn-check" name="product" id="prodSleeper" value="Sleeper" autocomplete="off">
+                <label class="btn btn-outline-primary" for="prodSleeper">Sleeper</label>
+                
+                <input type="radio" class="btn-check" name="product" id="prodGRSP" value="GRSP" autocomplete="off">
+                <label class="btn btn-outline-primary" for="prodGRSP">GRSP</label>
+                
+                <input type="radio" class="btn-check" name="product" id="prodElastomeric" value="Elastomeric Pad" autocomplete="off">
+                <label class="btn btn-outline-primary" for="prodElastomeric">Elastomeric Pad</label>
+                
+                <input type="radio" class="btn-check" name="product" id="prodRail" value="Rail" autocomplete="off">
+                <label class="btn btn-outline-primary" for="prodRail">Rail</label>
+              </div>
+            </div>
+
+            <!-- Manufacturing Unit -->
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">Manufacturing Unit</label>
+              <select class="form-select" id="mfgUnit" required>
+                <option value="" disabled selected>Select Unit</option>
+                <option value="Unit A - Mumbai">Unit A - Mumbai</option>
+                <option value="Unit B - Delhi">Unit B - Delhi</option>
+                <option value="Unit C - Bangalore">Unit C - Bangalore</option>
+                <option value="Unit D - Chennai">Unit D - Chennai</option>
+                <option value="Unit E - Kolkata">Unit E - Kolkata</option>
+              </select>
+            </div>
+
+            <!-- Report Type -->
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">Report Type</label>
+              <select class="form-select" id="reportType" required>
+                <option value="" disabled selected>Select Report</option>
+                <option value="MPR">MPR - Monthly Progress Report</option>
+                <option value="QMR">QMR - Quality Monitoring Report</option>
+                <option value="MAU">MAU - Monthly Analysis of Units</option>
+              </select>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="col-12 col-md-4 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100">
+                <span class="me-2">📊</span> Generate Report
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Report Container -->
+    <div id="reportContainer" style="display:none;">
+      <!-- Export Buttons -->
+      <div class="d-flex justify-content-end gap-2 mb-3 export-btn-group" data-aos="fade-up">
+        <button class="btn btn-success" id="exportExcel">
+          <span class="me-1">📥</span> Export Excel
+        </button>
+        <button class="btn btn-danger" id="exportPDF">
+          <span class="me-1">📄</span> Export PDF
+        </button>
+        <button class="btn btn-outline-secondary" id="printReport">
+          <span class="me-1">🖨️</span> Print
+        </button>
+      </div>
+
+      <!-- Report Content -->
+      <div class="card report-card" data-aos="fade-up" data-aos-delay="150">
+        <div class="report-header" id="reportHeader">
+          <h4 class="mb-2" id="reportTitle">Report Title</h4>
+          <div class="row">
+            <div class="col-md-6">
+              <p class="mb-1"><strong>Product:</strong> <span id="displayProduct">-</span></p>
+              <p class="mb-0"><strong>Manufacturing Unit:</strong> <span id="displayUnit">-</span></p>
+            </div>
+            <div class="col-md-6 text-md-end">
+              <p class="mb-1"><strong>Report Period:</strong> <span id="displayPeriod">-</span></p>
+              <p class="mb-0"><strong>Generated On:</strong> <span id="displayDate">-</span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-body" id="reportBody">
+          <!-- Dynamic content will be injected here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="text-center py-5" data-aos="fade-up">
+      <div class="mb-3" style="font-size: 4rem; opacity: 0.3;">📋</div>
+      <h5 class="text-muted">No Report Generated</h5>
+      <p class="text-muted">Select filters and click "Generate Report" to view data</p>
+    </div>
+  </div>
+
+  <!-- 📌 Footer -->
+  <footer class="border-top py-3 mt-4 text-center small text-muted">
+    © SARTHI - QIMS — v0.1
+  </footer>
+
+  <!-- ✅ JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  
+  <!-- ✅ Correct relative path to app.js - Load navbar FIRST -->
+  <script src="../assets/js/app.js"></script>
+  
+  <script>
+    // Initialize AOS after navbar loads
+    document.addEventListener('DOMContentLoaded', function() {
+      AOS.init({ duration: 800, once: true });
+    });
+
+    // Set default month to current
+    document.getElementById('reportMonth').value = new Date().toISOString().slice(0, 7);
+
+    // Dummy Data Generator
+    const dummyData = {
+      MPR: {
+        summary: {
+          totalInspected: 45820,
+          totalAccepted: 44156,
+          totalRejected: 1664,
+          rejectionRate: 3.63,
+          claims: 12
+        },
+        stageData: [
+          { stage: 'Raw Material', inspected: 15280, accepted: 14920, rejected: 360, rate: 2.36 },
+          { stage: 'In-Process', inspected: 18540, accepted: 17890, rejected: 650, rate: 3.51 },
+          { stage: 'Final Inspection', inspected: 12000, accepted: 11346, rejected: 654, rate: 5.45 }
+        ],
+        defects: [
+          { reason: 'Dimensional Variation', count: 580, percentage: 34.9 },
+          { reason: 'Surface Defects', count: 420, percentage: 25.2 },
+          { reason: 'Chemical Composition', count: 310, percentage: 18.6 },
+          { reason: 'Hardness Out of Range', count: 210, percentage: 12.6 },
+          { reason: 'Others', count: 144, percentage: 8.7 }
+        ]
+      },
+      QMR: {
+        summary: {
+          totalLots: 156,
+          acceptedLots: 142,
+          rejectedLots: 14,
+          lotAcceptanceRate: 91.03,
+          avgSampleSize: 294
+        },
+        qualityParams: [
+          { parameter: 'Chemical Composition', withinSpec: 94.2, outOfSpec: 5.8, status: 'Good' },
+          { parameter: 'Dimensional Accuracy', withinSpec: 89.7, outOfSpec: 10.3, status: 'Monitor' },
+          { parameter: 'Surface Quality', withinSpec: 96.5, outOfSpec: 3.5, status: 'Excellent' },
+          { parameter: 'Hardness', withinSpec: 92.1, outOfSpec: 7.9, status: 'Good' },
+          { parameter: 'Decarburization', withinSpec: 88.4, outOfSpec: 11.6, status: 'Alert' }
+        ],
+        monthlyTrend: [
+          { month: 'Jan', rate: 4.2 },
+          { month: 'Feb', rate: 3.9 },
+          { month: 'Mar', rate: 4.5 },
+          { month: 'Apr', rate: 3.8 },
+          { month: 'May', rate: 3.6 },
+          { month: 'Jun', rate: 3.6 }
+        ]
+      },
+      MAU: {
+        units: [
+          { unit: 'Unit A - Mumbai', inspected: 12450, rejected: 420, rate: 3.37, claims: 3, rating: 'A' },
+          { unit: 'Unit B - Delhi', inspected: 10850, rejected: 512, rate: 4.72, claims: 5, rating: 'B' },
+          { unit: 'Unit C - Bangalore', inspected: 9870, rejected: 289, rate: 2.93, claims: 2, rating: 'A' },
+          { unit: 'Unit D - Chennai', inspected: 8650, rejected: 367, rate: 4.24, claims: 4, rating: 'B' },
+          { unit: 'Unit E - Kolkata', inspected: 4000, rejected: 76, rate: 1.90, claims: 1, rating: 'A+' }
+        ],
+        comparison: {
+          best: 'Unit E - Kolkata',
+          worst: 'Unit B - Delhi',
+          avgRate: 3.43
+        }
+      }
+    };
+
+    // Generate Report
+    document.getElementById('reportFilterForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const month = document.getElementById('reportMonth').value;
+      const product = document.querySelector('input[name="product"]:checked').value;
+      const unit = document.getElementById('mfgUnit').value;
+      const reportType = document.getElementById('reportType').value;
+
+      // Update header
+      const monthName = new Date(month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      document.getElementById('displayProduct').textContent = product;
+      document.getElementById('displayUnit').textContent = unit;
+      document.getElementById('displayPeriod').textContent = monthName;
+      document.getElementById('displayDate').textContent = new Date().toLocaleDateString();
+
+      // Generate report based on type
+      if (reportType === 'MPR') {
+        generateMPR();
+      } else if (reportType === 'QMR') {
+        generateQMR();
+      } else if (reportType === 'MAU') {
+        generateMAU();
+      }
+
+      // Show report
+      document.getElementById('emptyState').style.display = 'none';
+      document.getElementById('reportContainer').style.display = 'block';
+      
+      // Scroll to report
+      setTimeout(() => {
+        document.getElementById('reportContainer').scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    });
+
+    // MPR Generator
+    function generateMPR() {
+      document.getElementById('reportTitle').textContent = 'Monthly Progress Report (MPR)';
+      const data = dummyData.MPR;
+      
+      const html = `
+        <!-- Summary -->
+        <div class="summary-box">
+          <h6 class="fw-bold mb-3">Executive Summary</h6>
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <div class="stat-card info">
+                <div class="small text-muted">Total Inspected</div>
+                <h5 class="mb-0">${data.summary.totalInspected.toLocaleString()}</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card success">
+                <div class="small text-muted">Accepted</div>
+                <h5 class="mb-0">${data.summary.totalAccepted.toLocaleString()}</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card danger">
+                <div class="small text-muted">Rejected</div>
+                <h5 class="mb-0">${data.summary.totalRejected.toLocaleString()}</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card warning">
+                <div class="small text-muted">Rejection Rate</div>
+                <h5 class="mb-0">${data.summary.rejectionRate}%</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stage-wise Analysis -->
+        <h6 class="fw-bold mb-3">Stage-wise Inspection Data</h6>
+        <div class="table-responsive mb-4">
+          <table class="table table-bordered table-hover">
+            <thead class="table-header">
+              <tr>
+                <th>Inspection Stage</th>
+                <th class="text-end">Inspected Qty</th>
+                <th class="text-end">Accepted Qty</th>
+                <th class="text-end">Rejected Qty</th>
+                <th class="text-end">Rejection Rate (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.stageData.map(row => `
+                <tr>
+                  <td><strong>${row.stage}</strong></td>
+                  <td class="text-end">${row.inspected.toLocaleString()}</td>
+                  <td class="text-end text-success">${row.accepted.toLocaleString()}</td>
+                  <td class="text-end text-danger">${row.rejected.toLocaleString()}</td>
+                  <td class="text-end"><span class="badge ${row.rate > 4 ? 'bg-danger' : row.rate > 3 ? 'bg-warning' : 'bg-success'}">${row.rate}%</span></td>
+                </tr>
+              `).join('')}
+              <tr class="table-light fw-bold">
+                <td>TOTAL</td>
+                <td class="text-end">${data.summary.totalInspected.toLocaleString()}</td>
+                <td class="text-end">${data.summary.totalAccepted.toLocaleString()}</td>
+                <td class="text-end">${data.summary.totalRejected.toLocaleString()}</td>
+                <td class="text-end">${data.summary.rejectionRate}%</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Defect Analysis -->
+        <h6 class="fw-bold mb-3">Top Rejection Reasons</h6>
+        <div class="table-responsive mb-4">
+          <table class="table table-bordered table-hover">
+            <thead class="table-header">
+              <tr>
+                <th>Rejection Reason</th>
+                <th class="text-end">Count</th>
+                <th class="text-end">Percentage</th>
+                <th>Distribution</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.defects.map(defect => `
+                <tr>
+                  <td>${defect.reason}</td>
+                  <td class="text-end">${defect.count}</td>
+                  <td class="text-end">${defect.percentage}%</td>
+                  <td>
+                    <div class="progress" style="height: 20px;">
+                      <div class="progress-bar bg-danger" style="width: ${defect.percentage}%">${defect.percentage}%</div>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Chart -->
+        <h6 class="fw-bold mb-3">Stage-wise Rejection Visualization</h6>
+        <div class="chart-container mb-3">
+          <canvas id="mprChart"></canvas>
+        </div>
+
+        <!-- Claims -->
+        <div class="alert alert-info">
+          <strong>Customer Claims:</strong> ${data.summary.claims} claims received this month
+        </div>
+      `;
+
+      document.getElementById('reportBody').innerHTML = html;
+      
+      // Render chart
+      renderMPRChart(data.stageData);
+    }
+
+    // QMR Generator
+    function generateQMR() {
+      document.getElementById('reportTitle').textContent = 'Quality Monitoring Report (QMR)';
+      const data = dummyData.QMR;
+      
+      const html = `
+        <!-- Summary -->
+        <div class="summary-box">
+          <h6 class="fw-bold mb-3">Quality Overview</h6>
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <div class="stat-card info">
+                <div class="small text-muted">Total Lots</div>
+                <h5 class="mb-0">${data.summary.totalLots}</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card success">
+                <div class="small text-muted">Accepted Lots</div>
+                <h5 class="mb-0">${data.summary.acceptedLots}</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card danger">
+                <div class="small text-muted">Rejected Lots</div>
+                <h5 class="mb-0">${data.summary.rejectedLots}</h5>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="stat-card warning">
+                <div class="small text-muted">Lot Acceptance Rate</div>
+                <h5 class="mb-0">${data.summary.lotAcceptanceRate}%</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quality Parameters -->
+        <h6 class="fw-bold mb-3">Quality Parameter Analysis</h6>
+        <div class="table-responsive mb-4">
+          <table class="table table-bordered table-hover">
+            <thead class="table-header">
+              <tr>
+                <th>Quality Parameter</th>
+                <th class="text-end">Within Spec (%)</th>
+                <th class="text-end">Out of Spec (%)</th>
+                <th class="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.qualityParams.map(param => `
+                <tr>
+                  <td><strong>${param.parameter}</strong></td>
+                  <td class="text-end text-success">${param.withinSpec}%</td>
+                  <td class="text-end text-danger">${param.outOfSpec}%</td>
+                  <td class="text-center">
+                    <span class="badge ${
+                      param.status === 'Excellent' ? 'bg-success' : 
+                      param.status === 'Good' ? 'bg-primary' : 
+                      param.status === 'Monitor' ? 'bg-warning' : 'bg-danger'
+                    }">${param.status}</span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Monthly Trend -->
+        <h6 class="fw-bold mb-3">6-Month Rejection Rate Trend</h6>
+        <div class="chart-container mb-3">
+          <canvas id="qmrChart"></canvas>
+        </div>
+
+        <!-- Recommendations -->
+        <div class="alert alert-warning">
+          <h6 class="fw-bold">⚠️ Key Recommendations</h6>
+          <ul class="mb-0">
+            <li>Monitor Decarburization levels - showing increased out-of-spec trends</li>
+            <li>Dimensional Accuracy needs attention - implement tighter process controls</li>
+            <li>Surface Quality performance is excellent - continue current practices</li>
+          </ul>
+        </div>
+      `;
+
+      document.getElementById('reportBody').innerHTML = html;
+      renderQMRChart(data.monthlyTrend);
+    }
+
+    // MAU Generator
+    function generateMAU() {
+      document.getElementById('reportTitle').textContent = 'Monthly Analysis of Units (MAU)';
+      const data = dummyData.MAU;
+      
+      const html = `
+        <!-- Summary -->
+        <div class="summary-box">
+          <h6 class="fw-bold mb-3">Performance Summary</h6>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="stat-card success">
+                <div class="small text-muted">Best Performer</div>
+                <h6 class="mb-0">${data.comparison.best}</h6>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-card danger">
+                <div class="small text-muted">Needs Improvement</div>
+                <h6 class="mb-0">${data.comparison.worst}</h6>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="stat-card info">
+                <div class="small text-muted">Average Rejection Rate</div>
+                <h5 class="mb-0">${data.comparison.avgRate}%</h5>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Unit-wise Performance -->
+        <h6 class="fw-bold mb-3">Unit-wise Performance Analysis</h6>
+        <div class="table-responsive mb-4">
+          <table class="table table-bordered table-hover">
+            <thead class="table-header">
+              <tr>
+                <th>Manufacturing Unit</th>
+                <th class="text-end">Inspected Qty</th>
+                <th class="text-end">Rejected Qty</th>
+                <th class="text-end">Rejection Rate (%)</th>
+                <th class="text-center">Claims</th>
+                <th class="text-center">Rating</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.units.map(unit => `
+                <tr>
+                  <td><strong>${unit.unit}</strong></td>
+                  <td class="text-end">${unit.inspected.toLocaleString()}</td>
+                  <td class="text-end text-danger">${unit.rejected.toLocaleString()}</td>
+                  <td class="text-end">
+                    <span class="badge ${unit.rate < 3 ? 'bg-success' : unit.rate < 4 ? 'bg-warning' : 'bg-danger'}">
+                      ${unit.rate}%
+                    </span>
+                  </td>
+                  <td class="text-center">${unit.claims}</td>
+                  <td class="text-center">
+                    <span class="badge ${
+                      unit.rating === 'A+' ? 'bg-success' : 
+                      unit.rating === 'A' ? 'bg-primary' : 
+                      unit.rating === 'B' ? 'bg-warning' : 'bg-danger'
+                    }">${unit.rating}</span>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Charts -->
+        <div class="row g-3 mb-4">
+          <div class="col-lg-6">
+            <h6 class="fw-bold mb-3">Rejection Rate Comparison</h6>
+            <div class="chart-container">
+              <canvas id="mauChart1"></canvas>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <h6 class="fw-bold mb-3">Claims Distribution</h6>
+            <div class="chart-container">
+              <canvas id="mauChart2"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div class="alert alert-success">
+          <h6 class="fw-bold">✅ Key Insights</h6>
+          <ul class="mb-0">
+            <li><strong>${data.comparison.best}</strong> shows exemplary quality control with lowest rejection rate</li>
+            <li><strong>${data.comparison.worst}</strong> requires process improvement initiatives</li>
+            <li>Overall fleet average of ${data.comparison.avgRate}% is within acceptable limits</li>
+            <li>3 units have achieved 'A' rating or above this month</li>
+          </ul>
+        </div>
+      `;
+
+      document.getElementById('reportBody').innerHTML = html;
+      renderMAUCharts(data.units);
+    }
+
+    // Chart Renderers
+    function renderMPRChart(data) {
+      const ctx = document.getElementById('mprChart');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.stage),
+          datasets: [
+            {
+              label: 'Inspected',
+              data: data.map(d => d.inspected),
+              backgroundColor: 'rgba(13, 202, 240, 0.7)'
+            },
+            {
+              label: 'Rejected',
+              data: data.map(d => d.rejected),
+              backgroundColor: 'rgba(220, 53, 69, 0.7)'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+
+    function renderQMRChart(data) {
+      const ctx = document.getElementById('qmrChart');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map(d => d.month),
+          datasets: [{
+            label: 'Rejection Rate (%)',
+            data: data.map(d => d.rate),
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.3,
+            fill: true,
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { 
+            y: { 
+              beginAtZero: true,
+              title: { display: true, text: 'Rejection Rate (%)' }
+            } 
+          }
+        }
+      });
+    }
+
+    function renderMAUCharts(data) {
+      // Chart 1: Rejection Rates
+      const ctx1 = document.getElementById('mauChart1');
+      new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: data.map(d => d.unit.split(' - ')[0]),
+          datasets: [{
+            label: 'Rejection Rate (%)',
+            data: data.map(d => d.rate),
+            backgroundColor: data.map(d => 
+              d.rate < 3 ? 'rgba(25, 135, 84, 0.7)' : 
+              d.rate < 4 ? 'rgba(255, 193, 7, 0.7)' : 
+              'rgba(220, 53, 69, 0.7)'
+            )
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: { 
+            x: { 
+              beginAtZero: true,
+              title: { display: true, text: 'Rejection Rate (%)' }
+            } 
+          }
+        }
+      });
+
+      // Chart 2: Claims
+      const ctx2 = document.getElementById('mauChart2');
+      new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: data.map(d => d.unit.split(' - ')[0]),
+          datasets: [{
+            data: data.map(d => d.claims),
+            backgroundColor: [
+              '#667eea',
+              '#764ba2',
+              '#f093fb',
+              '#4facfe',
+              '#43e97b'
+            ]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                  const percentage = ((context.parsed / total) * 100).toFixed(1);
+                  return context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Export Functions
+    document.getElementById('exportExcel').addEventListener('click', function() {
+      alert('📥 Excel export functionality will be implemented with backend integration.\n\nReport will include:\n• Summary data\n• Detailed tables\n• Charts as images');
+    });
+
+    document.getElementById('exportPDF').addEventListener('click', function() {
+      alert('📄 PDF export functionality will be implemented with backend integration.\n\nReport will include:\n• Professional formatting\n• Company header/footer\n• All tables and charts');
+    });
+
+    document.getElementById('printReport').addEventListener('click', function() {
+      window.print();
+    });
+
+    // Print styles
+    const style = document.createElement('style');
+    style.textContent = `
+      @media print {
+        body * { visibility: hidden; }
+        #reportContainer, #reportContainer * { visibility: visible; }
+        #reportContainer { 
+          position: absolute; 
+          left: 0; 
+          top: 0; 
+          width: 100%;
+        }
+        .export-btn-group { display: none !important; }
+        .page-content { padding: 0 !important; }
+        .card { box-shadow: none !important; page-break-inside: avoid; }
+        .chart-container { page-break-inside: avoid; }
+        table { page-break-inside: avoid; }
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

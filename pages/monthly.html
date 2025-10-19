@@ -1,1 +1,1078 @@
 <!-- monthly.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SARTHI - Monthly Inspection Register</title>
+
+  <!-- ✅ Bootstrap & AOS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  
+  <!-- ✅ Correct relative asset path -->
+  <link href="../assets/css/styles.css" rel="stylesheet">
+
+  <style>
+    .page-content { padding-bottom: 3rem; }
+    .filter-card { 
+      background: linear-gradient(135deg, #667eea15 0%, transparent 100%);
+      border-left: 4px solid #667eea;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .stats-bar { 
+      background: white; 
+      border-radius: 8px; 
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      margin-bottom: 1.5rem;
+    }
+    .stat-box { 
+      text-align: center; 
+      padding: 1rem;
+      border-right: 1px solid #e9ecef;
+    }
+    .stat-box:last-child { border-right: none; }
+    .stat-label { font-size: 0.75rem; color: #6c757d; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; margin-top: 0.25rem; }
+    .stat-value.success { color: #198754; }
+    .stat-value.danger { color: #dc3545; }
+    .stat-value.warning { color: #ffc107; }
+    .stat-value.info { color: #0dcaf0; }
+    .stat-value.primary { color: #667eea; }
+    
+    .table-container { 
+      background: white; 
+      border-radius: 8px; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .table-header-custom { 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .table thead th { 
+      background: #f8f9fa;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #667eea;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .table tbody tr { transition: all 0.2s; }
+    .table tbody tr:hover { background: #f8f9fa; transform: scale(1.01); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .badge-ie { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .badge-accepted { background: #198754; }
+    .badge-rejected { background: #dc3545; }
+    .badge-stage-raw { background: #0dcaf0; }
+    .badge-stage-process { background: #ffc107; color: #000; }
+    .badge-stage-final { background: #dc3545; }
+    
+    .filter-chip { 
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      margin: 0.25rem;
+      background: #667eea;
+      color: white;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .filter-chip .remove { 
+      margin-left: 0.5rem;
+      cursor: pointer;
+      opacity: 0.8;
+    }
+    .filter-chip .remove:hover { opacity: 1; }
+    
+    .action-bar { 
+      display: flex; 
+      gap: 0.5rem; 
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .search-box { 
+      max-width: 300px;
+      position: relative;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6c757d;
+    }
+    .search-box input {
+      padding-left: 38px;
+    }
+    
+    .pagination-info { 
+      font-size: 0.875rem; 
+      color: #6c757d;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .detail-modal .modal-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .detail-row { 
+      display: flex;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e9ecef;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { 
+      font-weight: 600;
+      min-width: 180px;
+      color: #6c757d;
+    }
+    .detail-value { color: #2d3748; }
+    
+    .quick-filter-btn {
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+      border-radius: 20px;
+    }
+    
+    .export-menu {
+      position: relative;
+    }
+    
+    @media (max-width: 768px) {
+      .stat-box { border-right: none; border-bottom: 1px solid #e9ecef; }
+      .stat-box:last-child { border-bottom: none; }
+      .action-bar { justify-content: center; }
+      .search-box { max-width: 100%; }
+    }
+
+    .rejection-tooltip {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+
+    .timeline-badge {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+    .timeline-badge.today { background: #198754; }
+    .timeline-badge.recent { background: #ffc107; }
+    .timeline-badge.old { background: #6c757d; }
+
+    .table-scroll {
+      max-height: 600px;
+      overflow-y: auto;
+    }
+
+    /* Loading spinner */
+    .spinner-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ Navbar -->
+  <div id="navbar-container"></div>
+
+  <div class="container-fluid page-content py-4">
+    <!-- Header -->
+    <div class="row mb-4" data-aos="fade-up">
+      <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h1 class="h3 mb-1">Monthly Inspection Register</h1>
+            <p class="text-muted mb-0">Comprehensive RITES inspection records and analytics</p>
+          </div>
+          <div class="d-flex gap-2">
+            <button class="btn btn-outline-primary" id="btnRefresh" title="Refresh Data">
+              <span>🔄</span>
+            </button>
+            <button class="btn btn-outline-secondary" id="btnSettings" title="Column Settings">
+              <span>⚙️</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Filters -->
+    <div class="card filter-card mb-4" data-aos="fade-up" data-aos-delay="50">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="mb-0 fw-bold">🔍 Filters</h6>
+          <button class="btn btn-sm btn-outline-danger" id="btnClearFilters">Clear All</button>
+        </div>
+        
+        <div class="row g-3">
+          <!-- Month Range -->
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold">From Month</label>
+            <input type="month" class="form-control" id="fromMonth">
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold">To Month</label>
+            <input type="month" class="form-control" id="toMonth">
+          </div>
+
+          <!-- Product Selection -->
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold d-block">Product</label>
+            <div class="btn-group flex-wrap" role="group">
+              <input type="radio" class="btn-check" name="product" id="prodAll" value="All" autocomplete="off" checked>
+              <label class="btn btn-outline-primary btn-sm" for="prodAll">All</label>
+              
+              <input type="radio" class="btn-check" name="product" id="prodERC" value="ERC" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="prodERC">ERC</label>
+              
+              <input type="radio" class="btn-check" name="product" id="prodSleeper" value="Sleeper" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="prodSleeper">Sleeper</label>
+              
+              <input type="radio" class="btn-check" name="product" id="prodGRSP" value="GRSP" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="prodGRSP">GRSP</label>
+              
+              <input type="radio" class="btn-check" name="product" id="prodElastomeric" value="Elastomeric Pad" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="prodElastomeric">Elastomeric Pad</label>
+              
+              <input type="radio" class="btn-check" name="product" id="prodRail" value="Rail" autocomplete="off">
+              <label class="btn btn-outline-primary btn-sm" for="prodRail">Rail</label>
+            </div>
+          </div>
+
+          <!-- Stage & Manufacturer -->
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold">Stage of Inspection</label>
+            <select class="form-select" id="stageFilter">
+              <option value="All">All Stages</option>
+              <option value="Raw Material">Raw Material</option>
+              <option value="Process">Process</option>
+              <option value="Final">Final</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold">Manufacturer</label>
+            <select class="form-select" id="manufacturerFilter">
+              <option value="All">All Manufacturers</option>
+            </select>
+          </div>
+
+          <!-- IE Name Filter -->
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold">Inspecting Engineer</label>
+            <select class="form-select" id="ieFilter">
+              <option value="All">All Engineers</option>
+            </select>
+          </div>
+
+          <!-- Status Filter -->
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold">Inspection Result</label>
+            <select class="form-select" id="statusFilter">
+              <option value="All">All Results</option>
+              <option value="Accepted">Fully Accepted</option>
+              <option value="PartiallyAccepted">Partially Accepted</option>
+              <option value="Rejected">Fully Rejected</option>
+            </select>
+          </div>
+
+          <!-- Quick Filters -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">Quick Filters</label>
+            <div class="d-flex gap-2 flex-wrap">
+              <button class="btn btn-sm btn-outline-secondary quick-filter-btn" data-filter="today">Today</button>
+              <button class="btn btn-sm btn-outline-secondary quick-filter-btn" data-filter="week">This Week</button>
+              <button class="btn btn-sm btn-outline-secondary quick-filter-btn" data-filter="month">This Month</button>
+              <button class="btn btn-sm btn-outline-secondary quick-filter-btn" data-filter="rejected">With Rejections</button>
+              <button class="btn btn-sm btn-outline-secondary quick-filter-btn" data-filter="high-qty">High Quantity (>1000)</button>
+            </div>
+          </div>
+
+          <!-- Apply Filters Button -->
+          <div class="col-12 text-end">
+            <button class="btn btn-primary px-4" id="btnApplyFilters">
+              <span class="me-2">🔍</span> Apply Filters
+            </button>
+          </div>
+        </div>
+
+        <!-- Active Filters Display -->
+        <div id="activeFiltersDisplay" class="mt-3"></div>
+      </div>
+    </div>
+
+    <!-- Statistics Bar -->
+    <div class="stats-bar" data-aos="fade-up" data-aos-delay="100">
+      <div class="row g-0">
+        <div class="col-6 col-md stat-box">
+          <div class="stat-label">Total Inspections</div>
+          <div class="stat-value primary" id="statTotal">0</div>
+        </div>
+        <div class="col-6 col-md stat-box">
+          <div class="stat-label">Qty Offered</div>
+          <div class="stat-value info" id="statOffered">0</div>
+        </div>
+        <div class="col-6 col-md stat-box">
+          <div class="stat-label">Qty Inspected</div>
+          <div class="stat-value info" id="statInspected">0</div>
+        </div>
+        <div class="col-6 col-md stat-box">
+          <div class="stat-label">Qty Accepted</div>
+          <div class="stat-value success" id="statAccepted">0</div>
+        </div>
+        <div class="col-6 col-md stat-box">
+          <div class="stat-label">Qty Rejected</div>
+          <div class="stat-value danger" id="statRejected">0</div>
+        </div>
+        <div class="col-6 col-md stat-box">
+          <div class="stat-label">Rejection Rate</div>
+          <div class="stat-value warning" id="statRate">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="table-container" data-aos="fade-up" data-aos-delay="150">
+      <div class="table-header-custom">
+        <div>
+          <h6 class="mb-0">Inspection Records</h6>
+          <small class="opacity-75" id="recordCount">0 records found</small>
+        </div>
+        <div class="action-bar">
+          <!-- Search -->
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" class="form-control form-control-sm" id="searchBox" placeholder="Search records...">
+          </div>
+          
+          <!-- Export Options -->
+          <div class="dropdown">
+            <button class="btn btn-sm btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              Export
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="#" id="exportExcel">📥 Export to Excel</a></li>
+              <li><a class="dropdown-item" href="#" id="exportCSV">📄 Export to CSV</a></li>
+              <li><a class="dropdown-item" href="#" id="exportPDF">📋 Export to PDF</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item" href="#" id="printTable">🖨️ Print</a></li>
+            </ul>
+          </div>
+
+          <!-- Items per page -->
+          <select class="form-select form-select-sm" id="itemsPerPage" style="width: auto;">
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+            <option value="all">All</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="table-scroll">
+        <table class="table table-hover mb-0" id="inspectionTable">
+          <thead>
+            <tr>
+              <th style="width: 50px;">#</th>
+              <th style="width: 100px;">Date</th>
+              <th style="width: 200px;">Manufacturer</th>
+              <th style="width: 150px;">Product Detail</th>
+              <th style="width: 120px;">IE Name</th>
+              <th style="width: 120px;">Stage</th>
+              <th class="text-end" style="width: 100px;">Offered</th>
+              <th class="text-end" style="width: 100px;">Inspected</th>
+              <th class="text-end" style="width: 100px;">Accepted</th>
+              <th class="text-end" style="width: 100px;">Rejected</th>
+              <th class="text-end" style="width: 80px;">Rej. %</th>
+              <th style="width: 200px;">Rejection Reason</th>
+              <th style="width: 100px;" class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <!-- Data will be populated here -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div class="pagination-info">
+          <span>Showing <strong id="showingStart">0</strong> to <strong id="showingEnd">0</strong> of <strong id="showingTotal">0</strong> records</span>
+        </div>
+        <nav>
+          <ul class="pagination pagination-sm mb-0" id="pagination">
+            <!-- Pagination will be generated here -->
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Inspection Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Details will be loaded here -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="btnPrintDetail">Print Details</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 📌 Footer -->
+  <footer class="border-top py-3 mt-4 text-center small text-muted">
+    © SARTHI - QIMS — v0.1
+  </footer>
+
+  <!-- ✅ JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  
+  <!-- ✅ Correct relative path to app.js - Load navbar FIRST -->
+  <script src="../assets/js/app.js"></script>
+  
+  <script>
+    // Initialize AOS after navbar loads
+    document.addEventListener('DOMContentLoaded', function() {
+      AOS.init({ duration: 800, once: true });
+    });
+
+    // ==================== DATA GENERATION ====================
+    const PRODUCTS = ['ERC', 'Sleeper', 'GRSP', 'Elastomeric Pad', 'Rail'];
+    const STAGES = ['Raw Material', 'Process', 'Final'];
+    const MANUFACTURERS = [
+      'Bharat Steel Industries Ltd.', 'National Engineering Corp.', 'Prime Components Pvt. Ltd.',
+      'Eastern Railways Suppliers', 'Modern Steel Works', 'Advanced Rail Systems',
+      'Industrial Fasteners India', 'Precision Engineering Ltd.', 'Royal Manufacturing Co.',
+      'Supreme Quality Products', 'Metro Components Ltd.', 'Indian Rail Suppliers',
+      'Technical Solutions Pvt. Ltd.', 'Quality Steel Works', 'Apex Engineering Corp.'
+    ];
+    const IE_NAMES = [
+      'Rajesh Kumar', 'Amit Singh', 'Priya Sharma', 'Suresh Patel', 'Kavita Reddy',
+      'Vijay Verma', 'Anita Desai', 'Manoj Gupta', 'Sneha Joshi', 'Ravi Mehta'
+    ];
+    const REJECTION_REASONS = [
+      'Dimensional variation beyond tolerance',
+      'Surface defects - cracks observed',
+      'Chemical composition out of specification',
+      'Hardness below minimum requirement',
+      'Improper heat treatment',
+      'Coating thickness insufficient',
+      'Visual defects - pitting/corrosion',
+      'Thread profile non-conforming',
+      'Material certification issues',
+      'Marking/identification missing',
+      'Decarburization depth exceeded',
+      'Inclusion content high',
+      'Straightness out of tolerance',
+      'Finish quality unacceptable'
+    ];
+
+    const PRODUCT_DETAILS = {
+      'ERC': ['52 kg ERC MK-III', '52 kg ERC MK-V', '60 kg ERC Type A', '60 kg ERC Type B'],
+      'Sleeper': ['PSC Sleeper Type A', 'PSC Sleeper Type B', 'Wooden Sleeper Grade-I', 'Steel Sleeper'],
+      'GRSP': ['GRSP Type-I', 'GRSP Type-II', 'GRSP Special Grade'],
+      'Elastomeric Pad': ['EP-5mm Type A', 'EP-7mm Type B', 'EP-10mm Heavy Duty'],
+      'Rail': ['52 kg/m UIC 54', '60 kg/m UIC 60', '90 R Standard']
+    };
+
+    // Generate dummy data
+    function generateInspectionData() {
+      const data = [];
+      const startDate = new Date('2025-01-01');
+      const endDate = new Date('2025-06-30');
+      
+      for (let i = 1; i <= 250; i++) {
+        const product = PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)];
+        const stage = STAGES[Math.floor(Math.random() * STAGES.length)];
+        const manufacturer = MANUFACTURERS[Math.floor(Math.random() * MANUFACTURERS.length)];
+        const ie = IE_NAMES[Math.floor(Math.random() * IE_NAMES.length)];
+        const productDetail = PRODUCT_DETAILS[product][Math.floor(Math.random() * PRODUCT_DETAILS[product].length)];
+        
+        const offered = 500 + Math.floor(Math.random() * 2000);
+        const inspected = offered - Math.floor(Math.random() * 50);
+        const rejected = Math.floor(inspected * (Math.random() * 0.08));
+        const accepted = inspected - rejected;
+        
+        const date = new Date(startDate.getTime() + Math.random() * (endDate - startDate));
+        const rejectionReason = rejected > 0 ? REJECTION_REASONS[Math.floor(Math.random() * REJECTION_REASONS.length)] : '-';
+        
+        data.push({
+          id: i,
+          date: date.toISOString().split('T')[0],
+          manufacturer,
+          product,
+          productDetail,
+          ie,
+          stage,
+          offered,
+          inspected,
+          accepted,
+          rejected,
+          rejectionRate: inspected > 0 ? ((rejected / inspected) * 100).toFixed(2) : '0.00',
+          rejectionReason,
+          lotNumber: `LOT/${date.getFullYear()}/${String(i).padStart(4, '0')}`,
+          challanNo: `CH/${Math.floor(Math.random() * 9000) + 1000}`,
+          poNumber: `PO/RITES/2025/${Math.floor(Math.random() * 500) + 100}`
+        });
+      }
+      
+      return data.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    let allData = generateInspectionData();
+    let filteredData = [...allData];
+    let currentPage = 1;
+    let itemsPerPage = 25;
+
+    // ==================== INITIALIZATION ====================
+    function init() {
+      // Set default dates
+      const now = new Date();
+      const fromDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+      document.getElementById('fromMonth').value = fromDate.toISOString().slice(0, 7);
+      document.getElementById('toMonth').value = now.toISOString().slice(0, 7);
+
+      // Populate dropdowns
+      populateManufacturers();
+      populateIEs();
+      
+      // Apply filters and render
+      applyFilters();
+    }
+
+    function populateManufacturers() {
+      const select = document.getElementById('manufacturerFilter');
+      const manufacturers = [...new Set(allData.map(d => d.manufacturer))].sort();
+      manufacturers.forEach(m => {
+        const option = document.createElement('option');
+        option.value = m;
+        option.textContent = m;
+        select.appendChild(option);
+      });
+    }
+
+    function populateIEs() {
+      const select = document.getElementById('ieFilter');
+      const ies = [...new Set(allData.map(d => d.ie))].sort();
+      ies.forEach(ie => {
+        const option = document.createElement('option');
+        option.value = ie;
+        option.textContent = ie;
+        select.appendChild(option);
+      });
+    }
+
+    // ==================== FILTERING ====================
+    function applyFilters() {
+      const fromMonth = document.getElementById('fromMonth').value;
+      const toMonth = document.getElementById('toMonth').value;
+      const product = document.querySelector('input[name="product"]:checked').value;
+      const stage = document.getElementById('stageFilter').value;
+      const manufacturer = document.getElementById('manufacturerFilter').value;
+      const ie = document.getElementById('ieFilter').value;
+      const status = document.getElementById('statusFilter').value;
+      const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+
+      filteredData = allData.filter(record => {
+        const recordMonth = record.date.slice(0, 7);
+        const matchesMonth = recordMonth >= fromMonth && recordMonth <= toMonth;
+        const matchesProduct = product === 'All' || record.product === product;
+        const matchesStage = stage === 'All' || record.stage === stage;
+        const matchesManufacturer = manufacturer === 'All' || record.manufacturer === manufacturer;
+        const matchesIE = ie === 'All' || record.ie === ie;
+        
+        let matchesStatus = true;
+        if (status === 'Accepted') matchesStatus = record.rejected === 0;
+        else if (status === 'PartiallyAccepted') matchesStatus = record.rejected > 0 && record.rejected < record.inspected;
+        else if (status === 'Rejected') matchesStatus = record.rejected === record.inspected;
+
+        const matchesSearch = !searchTerm || 
+          record.manufacturer.toLowerCase().includes(searchTerm) ||
+          record.productDetail.toLowerCase().includes(searchTerm) ||
+          record.ie.toLowerCase().includes(searchTerm) ||
+          record.rejectionReason.toLowerCase().includes(searchTerm);
+
+        return matchesMonth && matchesProduct && matchesStage && matchesManufacturer && matchesIE && matchesStatus && matchesSearch;
+      });
+
+      currentPage = 1;
+      updateActiveFilters();
+      updateStatistics();
+      renderTable();
+    }
+
+    function updateActiveFilters() {
+      const container = document.getElementById('activeFiltersDisplay');
+      const filters = [];
+
+      const product = document.querySelector('input[name="product"]:checked').value;
+      const stage = document.getElementById('stageFilter').value;
+      const manufacturer = document.getElementById('manufacturerFilter').value;
+      const ie = document.getElementById('ieFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      if (product !== 'All') filters.push({ label: `Product: ${product}`, type: 'product' });
+      if (stage !== 'All') filters.push({ label: `Stage: ${stage}`, type: 'stage' });
+      if (manufacturer !== 'All') filters.push({ label: `Mfr: ${manufacturer}`, type: 'manufacturer' });
+      if (ie !== 'All') filters.push({ label: `IE: ${ie}`, type: 'ie' });
+      if (status !== 'All') filters.push({ label: `Status: ${status}`, type: 'status' });
+
+      if (filters.length > 0) {
+        container.innerHTML = '<div class="mt-2"><small class="text-muted">Active Filters:</small><br>' +
+          filters.map(f => `<span class="filter-chip">${f.label}<span class="remove" onclick="removeFilter('${f.type}')">✕</span></span>`).join('') +
+          '</div>';
+      } else {
+        container.innerHTML = '';
+      }
+    }
+
+    function removeFilter(type) {
+      if (type === 'product') document.getElementById('prodAll').checked = true;
+      else if (type === 'stage') document.getElementById('stageFilter').value = 'All';
+      else if (type === 'manufacturer') document.getElementById('manufacturerFilter').value = 'All';
+      else if (type === 'ie') document.getElementById('ieFilter').value = 'All';
+      else if (type === 'status') document.getElementById('statusFilter').value = 'All';
+      applyFilters();
+    }
+
+    // ==================== STATISTICS ====================
+    function updateStatistics() {
+      const totalInspections = filteredData.length;
+      const totalOffered = filteredData.reduce((sum, r) => sum + r.offered, 0);
+      const totalInspected = filteredData.reduce((sum, r) => sum + r.inspected, 0);
+      const totalAccepted = filteredData.reduce((sum, r) => sum + r.accepted, 0);
+      const totalRejected = filteredData.reduce((sum, r) => sum + r.rejected, 0);
+      const rejectionRate = totalInspected > 0 ? ((totalRejected / totalInspected) * 100).toFixed(2) : '0.00';
+
+      document.getElementById('statTotal').textContent = totalInspections.toLocaleString();
+      document.getElementById('statOffered').textContent = totalOffered.toLocaleString();
+      document.getElementById('statInspected').textContent = totalInspected.toLocaleString();
+      document.getElementById('statAccepted').textContent = totalAccepted.toLocaleString();
+      document.getElementById('statRejected').textContent = totalRejected.toLocaleString();
+      document.getElementById('statRate').textContent = rejectionRate + '%';
+    }
+
+    // ==================== TABLE RENDERING ====================
+    function renderTable() {
+      const tbody = document.getElementById('tableBody');
+      const start = (currentPage - 1) * itemsPerPage;
+      const end = itemsPerPage === 'all' ? filteredData.length : start + itemsPerPage;
+      const pageData = filteredData.slice(start, end);
+
+      tbody.innerHTML = '';
+
+      if (pageData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="13" class="text-center py-5 text-muted">No records found matching the filters</td></tr>';
+        document.getElementById('recordCount').textContent = '0 records found';
+        return;
+      }
+
+      pageData.forEach((record, index) => {
+        const row = document.createElement('tr');
+        const globalIndex = start + index + 1;
+        
+        // Date badge based on recency
+        const daysDiff = Math.floor((new Date() - new Date(record.date)) / (1000 * 60 * 60 * 24));
+        const timelineBadge = daysDiff === 0 ? 'today' : daysDiff <= 7 ? 'recent' : 'old';
+        
+        // Stage badge
+        const stageBadgeClass = record.stage === 'Raw Material' ? 'badge-stage-raw' : 
+                                record.stage === 'Process' ? 'badge-stage-process' : 'badge-stage-final';
+        
+        // Rejection rate color
+        const rejRateClass = record.rejectionRate == 0 ? 'text-success' : 
+                            record.rejectionRate < 3 ? 'text-warning' : 'text-danger';
+
+        row.innerHTML = `
+          <td>${globalIndex}</td>
+          <td>
+            <span class="timeline-badge ${timelineBadge}"></span>
+            <small>${formatDate(record.date)}</small>
+          </td>
+          <td><small class="fw-semibold">${record.manufacturer}</small></td>
+          <td><small>${record.productDetail}</small></td>
+          <td><span class="badge badge-ie">${record.ie}</span></td>
+          <td><span class="badge ${stageBadgeClass}">${record.stage}</span></td>
+          <td class="text-end">${record.offered.toLocaleString()}</td>
+          <td class="text-end">${record.inspected.toLocaleString()}</td>
+          <td class="text-end text-success fw-semibold">${record.accepted.toLocaleString()}</td>
+          <td class="text-end text-danger fw-semibold">${record.rejected.toLocaleString()}</td>
+          <td class="text-end ${rejRateClass} fw-bold">${record.rejectionRate}%</td>
+          <td><small class="rejection-tooltip" onclick="showTooltip('${escapeHtml(record.rejectionReason)}')">${truncate(record.rejectionReason, 30)}</small></td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-primary" onclick="showDetail(${record.id})" title="View Details">
+              👁️
+            </button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+
+      document.getElementById('recordCount').textContent = `${filteredData.length} records found`;
+      updatePagination();
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+    }
+
+    function truncate(str, length) {
+      return str.length > length ? str.substring(0, length) + '...' : str;
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+
+    function showTooltip(text) {
+      alert(text);
+    }
+
+    // ==================== PAGINATION ====================
+    function updatePagination() {
+      const totalPages = itemsPerPage === 'all' ? 1 : Math.ceil(filteredData.length / itemsPerPage);
+      const pagination = document.getElementById('pagination');
+      
+      const start = (currentPage - 1) * itemsPerPage + 1;
+      const end = Math.min(start + itemsPerPage - 1, filteredData.length);
+      
+      document.getElementById('showingStart').textContent = filteredData.length > 0 ? start : 0;
+      document.getElementById('showingEnd').textContent = filteredData.length > 0 ? end : 0;
+      document.getElementById('showingTotal').textContent = filteredData.length;
+
+      pagination.innerHTML = '';
+
+      if (totalPages <= 1) return;
+
+      // Previous button
+      const prevLi = document.createElement('li');
+      prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+      prevLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Previous</a>`;
+      pagination.appendChild(prevLi);
+
+      // Page numbers
+      const maxVisible = 5;
+      let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+      let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+      
+      if (endPage - startPage < maxVisible - 1) {
+        startPage = Math.max(1, endPage - maxVisible + 1);
+      }
+
+      if (startPage > 1) {
+        const li = document.createElement('li');
+        li.className = 'page-item';
+        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(1)">1</a>`;
+        pagination.appendChild(li);
+        
+        if (startPage > 2) {
+          const dots = document.createElement('li');
+          dots.className = 'page-item disabled';
+          dots.innerHTML = `<span class="page-link">...</span>`;
+          pagination.appendChild(dots);
+        }
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        const li = document.createElement('li');
+        li.className = `page-item ${i === currentPage ? 'active' : ''}`;
+        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${i})">${i}</a>`;
+        pagination.appendChild(li);
+      }
+
+      if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+          const dots = document.createElement('li');
+          dots.className = 'page-item disabled';
+          dots.innerHTML = `<span class="page-link">...</span>`;
+          pagination.appendChild(dots);
+        }
+        
+        const li = document.createElement('li');
+        li.className = 'page-item';
+        li.innerHTML = `<a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a>`;
+        pagination.appendChild(li);
+      }
+
+      // Next button
+      const nextLi = document.createElement('li');
+      nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+      nextLi.innerHTML = `<a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Next</a>`;
+      pagination.appendChild(nextLi);
+    }
+
+    function changePage(page) {
+      event.preventDefault();
+      const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+      if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        renderTable();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    // ==================== DETAIL MODAL ====================
+    function showDetail(id) {
+      const record = allData.find(r => r.id === id);
+      if (!record) return;
+
+      const modalBody = document.getElementById('modalBody');
+      const acceptanceRate = ((record.accepted / record.inspected) * 100).toFixed(2);
+      
+      modalBody.innerHTML = `
+        <div class="row">
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3 text-primary">Inspection Information</h6>
+            <div class="detail-row">
+              <div class="detail-label">Inspection Date:</div>
+              <div class="detail-value">${formatDate(record.date)}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Lot Number:</div>
+              <div class="detail-value">${record.lotNumber}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Challan Number:</div>
+              <div class="detail-value">${record.challanNo}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">PO Number:</div>
+              <div class="detail-value">${record.poNumber}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Inspecting Engineer:</div>
+              <div class="detail-value"><span class="badge badge-ie">${record.ie}</span></div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Inspection Stage:</div>
+              <div class="detail-value"><span class="badge ${
+                record.stage === 'Raw Material' ? 'badge-stage-raw' : 
+                record.stage === 'Process' ? 'badge-stage-process' : 'badge-stage-final'
+              }">${record.stage}</span></div>
+            </div>
+          </div>
+          
+          <div class="col-md-6">
+            <h6 class="fw-bold mb-3 text-primary">Product & Manufacturer</h6>
+            <div class="detail-row">
+              <div class="detail-label">Manufacturer:</div>
+              <div class="detail-value">${record.manufacturer}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Product:</div>
+              <div class="detail-value">${record.product}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">Product Detail:</div>
+              <div class="detail-value">${record.productDetail}</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h6 class="fw-bold mb-3 text-primary">Quantity & Results</h6>
+        <div class="row g-3">
+          <div class="col-6 col-md-3">
+            <div class="stat-card info">
+              <div class="small text-muted">Qty Offered</div>
+              <h5 class="mb-0">${record.offered.toLocaleString()}</h5>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card info">
+              <div class="small text-muted">Qty Inspected</div>
+              <h5 class="mb-0">${record.inspected.toLocaleString()}</h5>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card success">
+              <div class="small text-muted">Qty Accepted</div>
+              <h5 class="mb-0">${record.accepted.toLocaleString()}</h5>
+              <small class="text-success">${acceptanceRate}%</small>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card danger">
+              <div class="small text-muted">Qty Rejected</div>
+              <h5 class="mb-0">${record.rejected.toLocaleString()}</h5>
+              <small class="text-danger">${record.rejectionRate}%</small>
+            </div>
+          </div>
+        </div>
+
+        ${record.rejected > 0 ? `
+          <hr class="my-4">
+          <h6 class="fw-bold mb-3 text-danger">Rejection Details</h6>
+          <div class="alert alert-danger">
+            <strong>Reason for Rejection:</strong><br>
+            ${record.rejectionReason}
+          </div>
+          <div class="alert alert-warning">
+            <strong>⚠️ Recommended Actions:</strong>
+            <ul class="mb-0 mt-2">
+              <li>Review manufacturing process parameters</li>
+              <li>Verify quality control procedures at manufacturer end</li>
+              <li>Conduct root cause analysis for the identified defect</li>
+              <li>Submit corrective action plan within 7 days</li>
+            </ul>
+          </div>
+        ` : `
+          <hr class="my-4">
+          <div class="alert alert-success">
+            <strong>✅ Full Acceptance</strong><br>
+            All inspected items met the quality standards. No rejections recorded.
+          </div>
+        `}
+      `;
+
+      const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+      modal.show();
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    document.getElementById('btnApplyFilters').addEventListener('click', applyFilters);
+    document.getElementById('searchBox').addEventListener('input', applyFilters);
+    
+    document.getElementById('itemsPerPage').addEventListener('change', function() {
+      itemsPerPage = this.value === 'all' ? 'all' : parseInt(this.value);
+      currentPage = 1;
+      renderTable();
+    });
+
+    document.getElementById('btnClearFilters').addEventListener('click', function() {
+      document.getElementById('prodAll').checked = true;
+      document.getElementById('stageFilter').value = 'All';
+      document.getElementById('manufacturerFilter').value = 'All';
+      document.getElementById('ieFilter').value = 'All';
+      document.getElementById('statusFilter').value = 'All';
+      document.getElementById('searchBox').value = '';
+      applyFilters();
+    });
+
+    document.getElementById('btnRefresh').addEventListener('click', function() {
+      allData = generateInspectionData();
+      populateManufacturers();
+      populateIEs();
+      applyFilters();
+    });
+
+    // Quick Filters
+    document.querySelectorAll('.quick-filter-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        const filter = this.dataset.filter;
+        const now = new Date();
+        
+        if (filter === 'today') {
+          const today = now.toISOString().slice(0, 7);
+          document.getElementById('fromMonth').value = today;
+          document.getElementById('toMonth').value = today;
+        } else if (filter === 'week') {
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          document.getElementById('fromMonth').value = weekAgo.toISOString().slice(0, 7);
+          document.getElementById('toMonth').value = now.toISOString().slice(0, 7);
+        } else if (filter === 'month') {
+          const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          document.getElementById('fromMonth').value = monthAgo.toISOString().slice(0, 7);
+          document.getElementById('toMonth').value = now.toISOString().slice(0, 7);
+        } else if (filter === 'rejected') {
+          document.getElementById('statusFilter').value = 'Rejected';
+        } else if (filter === 'high-qty') {
+          // This will be filtered in the search
+          document.getElementById('searchBox').value = '';
+          // Filter will be applied through custom logic
+        }
+        
+        applyFilters();
+      });
+    });
+
+    // Export Functions
+    document.getElementById('exportCSV').addEventListener('click', function(e) {
+      e.preventDefault();
+      const csv = ['Date,Manufacturer,Product Detail,IE Name,Stage,Qty Offered,Qty Inspected,Qty Accepted,Qty Rejected,Rejection %,Rejection Reason'];
+      filteredData.forEach(r => {
+        csv.push([
+          r.date, 
+          `"${r.manufacturer}"`, 
+          `"${r.productDetail}"`, 
+          r.ie, 
+          r.stage, 
+          r.offered, 
+          r.inspected, 
+          r.accepted, 
+          r.rejected, 
+          r.rejectionRate,
+          `"${r.rejectionReason}"`
+        ].join(','));
+      });
+      
+      const blob = new Blob([csv.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SARTHI-Monthly-Inspection-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('exportExcel').addEventListener('click', function(e) {
+      e.preventDefault();
+      alert('📥 Excel export will be implemented with backend integration.\n\nThe export will include:\n• All filtered records\n• Formatted headers\n• Summary statistics\n• Charts and graphs');
+    });
+
+    document.getElementById('exportPDF').addEventListener('click', function(e) {
+      e.preventDefault();
+      alert('📋 PDF export will be implemented with backend integration.\n\nThe export will include:\n• Professional RITES letterhead\n• All filtered records in tabular format\n• Summary statistics\n• Digital signatures');
+    });
+
+    document.getElementById('printTable').addEventListener('click', function(e) {
+      e.preventDefault();
+      window.print();
+    });
+
+    document.getElementById('btnPrintDetail').addEventListener('click', function() {
+      window.print();
+    });
+
+    // Product toggle change
+    document.querySelectorAll('input[name="product"]').forEach(radio => {
+      radio.addEventListener('change', applyFilters);
+    });
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>

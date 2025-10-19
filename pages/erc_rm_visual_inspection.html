@@ -3,13 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SARTHI - ERC Raw Material Visual Inspection</title>
+  <title>SARTHI - ERC Raw Material Visual & Dimensional Inspection</title>
 
   <!-- Bootstrap 5 -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- AOS -->
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
-  <!-- Custom CSS -->
   <link href="../assets/css/styles.css" rel="stylesheet">
 
   <style>
@@ -19,6 +18,14 @@
     .form-container {
       max-width: 900px;
       margin: 0 auto;
+    }
+    table input {
+      text-align: center;
+    }
+    .out-of-range {
+      background-color: #f8d7da !important;  /* Light red background */
+      border-color: #f5c2c7 !important;
+      color: #842029;
     }
   </style>
 </head>
@@ -57,11 +64,27 @@
           <!-- 🧪 Section: Samples -->
           <div class="mb-4">
             <label for="sampleCount" class="form-label fw-semibold">Samples to be Taken</label>
-            <input type="number" class="form-control" id="sampleCount" placeholder=" Enter the no, of Samples to be inspected">
+            <input type="number" class="form-control" id="sampleCount" value="1" min="1">
           </div>
 
           <!-- 👀 Section: Observations -->
           <div id="observationsContainer" class="mb-4"></div>
+
+          <!-- 📐 Std. Diameter Selection -->
+          <div class="mb-4">
+            <label for="stdDia" class="form-label fw-semibold">Std. Dia</label>
+            <select id="stdDia" class="form-select">
+              <option value="" selected disabled>Select Std. Dia</option>
+              <option value="20.64">20.64 mm</option>
+              <option value="23">23 mm</option>
+            </select>
+          </div>
+
+          <!-- 📏 Section: Sample Diameter Table -->
+          <div class="mb-4">
+            <label class="form-label fw-semibold">Sample Diameter Measurement</label>
+            <div id="tablesContainer"></div>
+          </div>
 
           <!-- 📝 Remarks -->
           <div class="mb-4">
@@ -72,7 +95,7 @@
           <!-- 💾 Submit Button -->
           <div class="d-flex justify-content-center">
             <button type="button" class="btn btn-primary px-5" id="submitInspection">
-              Submit Inspection
+              Save Visual & Dimensional Inspection
             </button>
           </div>
 
@@ -95,46 +118,149 @@
 
     const sampleInput = document.getElementById('sampleCount');
     const observationsContainer = document.getElementById('observationsContainer');
+    const tablesContainer = document.getElementById('tablesContainer');
+    const stdDiaSelect = document.getElementById('stdDia');
 
-    // Dynamically generate observation fields
-    sampleInput.addEventListener('input', () => {
-      const count = parseInt(sampleInput.value) || 0;
+    let toleranceMin = null;
+    let toleranceMax = null;
+
+    // ✅ Update tolerance values based on selected Std. Dia
+    stdDiaSelect.addEventListener('change', () => {
+      const value = stdDiaSelect.value;
+      if (value === '20.64') {
+        toleranceMin = 20.47;
+        toleranceMax = 20.84;
+      } else if (value === '23') {
+        toleranceMin = 22.81;
+        toleranceMax = 23.23;
+      } else {
+        toleranceMin = null;
+        toleranceMax = null;
+      }
+      validateAllDiaFields();
+    });
+
+    // Function to generate fields and table
+    function generateFields(count) {
       observationsContainer.innerHTML = '';
+      tablesContainer.innerHTML = '';
 
-      for (let i = 1; i <= count; i++) {
+      for (let s = 1; s <= count; s++) {
+        // Observation fields
         const div = document.createElement('div');
         div.className = 'mb-3';
         div.innerHTML = `
-          <label class="form-label fw-semibold">Heat Number ${i}</label>
-          <input type="text" class="form-control" placeholder="Enter Heat No." id="hn-${i}">
-          <label class="form-label fw-semibold">Observation for Sample ${i}</label>
-          <input type="text" class="form-control" placeholder="Visually checked — no such defects observed" id="observation-${i}">
+          <label class="form-label fw-semibold">Heat Number ${s}</label>
+          <input type="text" class="form-control mb-2" placeholder="Enter Heat No." id="hn-${s}">
+          <label class="form-label fw-semibold">Observation for Sample ${s}</label>
+          <input type="text" class="form-control" placeholder="Visually checked — no such defects observed" id="observation-${s}">
         `;
         observationsContainer.appendChild(div);
+
+        // Table for each sample
+        const tableWrapper = document.createElement('div');
+        tableWrapper.className = 'table-responsive mb-4';
+
+        const table = document.createElement('table');
+        table.className = 'table table-bordered align-middle text-center';
+        table.innerHTML = `
+          <thead class="table-light">
+            <tr>
+              <th colspan="4">Sample ${s} - Diameter Measurement</th>
+            </tr>
+            <tr>
+              <th>Sample No.</th>
+              <th>Dia (mm)</th>
+              <th>Sample No.</th>
+              <th>Dia (mm)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody-${s}"></tbody>
+        `;
+        tableWrapper.appendChild(table);
+        tablesContainer.appendChild(tableWrapper);
+
+        const tbody = document.getElementById(`tableBody-${s}`);
+        for (let i = 1; i <= 20; i += 2) {
+          const secondSample = i + 1 <= 20 ? i + 1 : '';
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${i}</td>
+            <td><input type="number" class="form-control text-center dia-field" id="dia-${s}-${i}" placeholder="mm"></td>
+            <td>${secondSample || ''}</td>
+            <td>${secondSample ? `<input type="number" class="form-control text-center dia-field" id="dia-${s}-${secondSample}" placeholder="mm">` : ''}</td>
+          `;
+          tbody.appendChild(tr);
+        }
       }
+      attachValidationListeners();
+    }
+
+    // Generate initial fields with default value = 1
+    generateFields(1);
+
+    // Regenerate when sample count changes
+    sampleInput.addEventListener('input', () => {
+      const count = parseInt(sampleInput.value) || 1;
+      generateFields(count);
     });
 
-    // Handle form submission
-    document.getElementById('submitInspection').addEventListener('click', () => {
-      const sampleCount = sampleInput.value;
-      const remarks = document.getElementById('remarks').value;
-      const observations = [];
+    // Attach listeners to all dia fields
+    function attachValidationListeners() {
+      document.querySelectorAll('.dia-field').forEach(input => {
+        input.addEventListener('input', () => validateDiaField(input));
+      });
+    }
 
-      for (let i = 1; i <= sampleCount; i++) {
-        const obs = document.getElementById(`observation-${i}`).value || '';
-        observations.push(obs);
+    // Validate a single dia field
+    function validateDiaField(input) {
+      const val = parseFloat(input.value);
+      if (toleranceMin !== null && toleranceMax !== null && !isNaN(val)) {
+        if (val < toleranceMin || val > toleranceMax) {
+          input.classList.add('out-of-range');
+        } else {
+          input.classList.remove('out-of-range');
+        }
+      } else {
+        input.classList.remove('out-of-range');
+      }
+    }
+
+    // Validate all dia fields
+    function validateAllDiaFields() {
+      document.querySelectorAll('.dia-field').forEach(input => validateDiaField(input));
+    }
+
+    // Submit
+    document.getElementById('submitInspection').addEventListener('click', () => {
+      const sampleCount = parseInt(sampleInput.value) || 1;
+      const remarks = document.getElementById('remarks').value;
+      const allData = [];
+
+      for (let s = 1; s <= sampleCount; s++) {
+        const heat = document.getElementById(`hn-${s}`).value || '';
+        const obs = document.getElementById(`observation-${s}`).value || '';
+        const diaData = [];
+
+        for (let i = 1; i <= 10; i++) {
+          const val = document.getElementById(`dia-${s}-${i}`).value || '';
+          diaData.push({ row: i, dia: val });
+        }
+
+        allData.push({ sample: s, heat, observation: obs, diameters: diaData });
       }
 
       const inspectionData = {
         sampleCount,
-        observations,
+        stdDia: stdDiaSelect.value,
+        tolerance: { min: toleranceMin, max: toleranceMax },
+        data: allData,
         remarks
       };
 
       console.log('✅ Visual Inspection Data:', inspectionData);
       alert('✅ Visual Inspection data saved successfully!');
-      // Optional redirect after submit
-      window.location.href = '/pages/erc_raw_material_inspection_dashboard.html';
+      window.location.href = '/sarthi/pages/erc_raw_material_inspection_dashboard.html';
     });
   </script>
 </body>
