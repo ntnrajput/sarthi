@@ -410,10 +410,14 @@ footer {
   padding: 1.5rem 0 !important;
   margin-top: 3rem !important;
   box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
-  position: relative;
+  position: fixed;          /* ✅ Fix the footer position */
+  bottom: 0;                /* ✅ Stick it to the bottom */
+  left: 0;
+  width: 100%;              /* ✅ Full width */
   z-index: 1010;
   animation: fadeIn 1s ease-out;
 }
+
 
 footer::before {
   content: '';

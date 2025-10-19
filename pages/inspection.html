@@ -1,1 +1,156 @@
-<!-- inspection.html -->
+<!-- /pages/inspection.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SARTHI - Inspection</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  <link href="/assets/css/styles.css" rel="stylesheet">
+</head>
+<body>
+  <!-- ✅ Navbar -->
+  <div id="navbar-container"></div>
+
+  <!-- Main Container -->
+  <div class="container-fluid py-4">
+    <div class="row justify-content-center">
+      <main id="content" class="col-12 col-md-8 col-lg-6">
+        <h1 class="h3 mb-4" data-aos="fade-up">Inspection Entry Form</h1>
+
+        <div class="card shadow-sm" data-aos="fade-up" data-aos-delay="100">
+          <div class="card-body">
+            <form id="inspectionForm" class="row g-4">
+
+              <!-- Product -->
+              <div class="col-12">
+                <label for="productSelect" class="form-label fw-semibold">Product to be Inspected</label>
+                <select class="form-select" id="productSelect" required>
+                  <option value="" disabled selected>Select Product</option>
+                  <option value="ERC">ERC</option>
+                  <option value="Sleeper">Sleeper</option>                  
+                  <option value="GRSP">GRSP</option>
+                  <option value="Elastomeric Pad">Elastomeric Pad</option>
+                  <option value="Rail">Rail</option>
+                </select>
+              </div>
+
+              <!-- Manufacturer -->
+              <div class="col-12">
+                <label for="manufacturerSelect" class="form-label fw-semibold">Select Manufacturer Name</label>
+                <select class="form-select" id="manufacturerSelect" required disabled>
+                  <option value="" disabled selected>Select Manufacturer</option>
+                </select>
+              </div>
+
+              <!-- Stage -->
+              <div class="col-12">
+                <label for="stageSelect" class="form-label fw-semibold">Select Inspection Stage</label>
+                <select class="form-select" id="stageSelect" required>
+                  <option value="" disabled selected>Select Stage</option>
+                  <option value="Raw Material">Raw Material</option>
+                  <option value="Process">Process</option>
+                  <option value="Final">Final</option>
+                </select>
+              </div>
+
+              <!-- Submit -->
+              <div class="col-12 d-flex justify-content-center mt-3">
+                <button type="submit" class="btn btn-primary px-5">Start Duty</button>
+              </div>
+
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <footer class="border-top py-3 mt-4 text-center small text-muted">
+    © SARTHI - QIMS — v0.1
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  <script src="/assets/js/app.js"></script>
+
+  <script>
+    AOS.init({ duration: 800, once: true });
+
+    // Manufacturer data
+    const manufacturers = {
+      'Sleeper': ['Sleeper Manufacturer 1', 'Sleeper Manufacturer 2'],
+      'ERC': ['ERC Manufacturer 1', 'ERC Manufacturer 2'],
+      'GRSP': ['GRSP Manufacturer 1', 'GRSP Manufacturer 2'],
+      'Elastomeric Pad': ['Elasto Manufacturer 1', 'Elasto Manufacturer 2'],
+      'Rail': ['Rail Manufacturer 1', 'Rail Manufacturer 2']
+    };
+
+    const productSelect = document.getElementById('productSelect');
+    const manufacturerSelect = document.getElementById('manufacturerSelect');
+
+    productSelect.addEventListener('change', () => {
+      const selectedProduct = productSelect.value;
+      manufacturerSelect.innerHTML = '<option value="" disabled selected>Select Manufacturer</option>';
+
+      if (manufacturers[selectedProduct]) {
+        manufacturers[selectedProduct].forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          manufacturerSelect.appendChild(opt);
+        });
+        manufacturerSelect.disabled = false;
+      } else {
+        manufacturerSelect.disabled = true;
+      }
+    });
+
+    // 🚀 Absolute path redirect map
+    const redirectMap = {
+      'ERC': {
+        'Raw Material': '/pages/erc_raw_material_start_duty.html',
+        'Process': '/pages/erc_process_start_duty.html',
+        'Final': '/pages/erc_final_start_duty.html'
+      },
+      'Sleeper': {
+        'Raw Material': '/pages/sleeper_raw_material_start_duty.html',
+        'Process': '/pages/sleeper_process_start_duty.html',
+        'Final': '/pages/sleeper_final_start_duty.html'
+      },
+      'GRSP': {
+        'Raw Material': '/pages/grsp_raw_material_start_duty.html',
+        'Process': '/pages/grsp_process_start_duty.html',
+        'Final': '/pages/grsp_final_start_duty.html'
+      },
+      'Elastomeric Pad': {
+        'Raw Material': '/pages/elastomeric_raw_material_start_duty.html',
+        'Process': '/pages/elastomeric_process_start_duty.html',
+        'Final': '/pages/elastomeric_final_start_duty.html'
+      },
+      'Rail': {
+        'Raw Material': '/pages/rail_raw_material_start_duty.html',
+        'Process': '/pages/rail_process_start_duty.html',
+        'Final': '/pages/rail_final_start_duty.html'
+      }
+    };
+
+    document.getElementById('inspectionForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const product = productSelect.value;
+      const stage = document.getElementById('stageSelect').value;
+      const redirectUrl = redirectMap[product]?.[stage];
+
+      console.log('Redirecting to:', redirectUrl);  // 🧪 Debugging
+
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+      } else {
+        alert(`❌ No page defined for ${product} - ${stage}`);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,4 @@
 // assets/js/app.js
-
-// Helper to load components dynamically
 async function loadComponent(containerId, filePath) {
   const container = document.getElementById(containerId);
   if (!container) return;
@@ -8,7 +6,9 @@ async function loadComponent(containerId, filePath) {
   container.innerHTML = await res.text();
 }
 
-// Load only navbar for dashboard (sidebar removed)
 (async () => {
-  await loadComponent('navbar-container', 'components/navbar.html');
+  const isInPages = location.pathname.includes('/pages/');
+  const base = isInPages ? '..' : '.';
+  await loadComponent('navbar-container', `${base}/components/navbar.html`);
 })();
+
