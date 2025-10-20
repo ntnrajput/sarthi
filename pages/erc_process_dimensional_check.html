@@ -1,0 +1,829 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SARTHI - ERC Process Inspection: Dimensional Check</title>
+
+  <!-- ✅ Bootstrap & AOS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
+  
+  <!-- ✅ Correct relative asset path -->
+  <link href="../assets/css/styles.css" rel="stylesheet">
+
+  <style>
+    .page-content { padding-bottom: 3rem; }
+    
+    .inspection-header {
+      background: linear-gradient(135deg, #ffffff 0%, #764ba2 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .hour-card {
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      transition: all 0.3s;
+      background: white;
+    }
+    
+    .hour-card.completed {
+      border-color: #198754;
+    }
+    
+    .hour-header {
+      padding: 1rem 1.5rem;
+      cursor: pointer;
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      background: #f8f9fa;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.3s;
+      user-select: none;
+    }
+    
+    .hour-header:hover {
+      background: #e9ecef;
+    }
+    
+    .hour-card.completed .hour-header {
+      background: linear-gradient(135deg, #198754 0%, #20c997 100%);
+      color: white;
+    }
+    
+    .hour-card.completed-warning .hour-header {
+      background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%);
+      color: #000;
+    }
+    
+    .hour-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .hour-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.9rem;
+    }
+    
+    .status-badge {
+      padding: 0.35rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-complete {
+      background: #d1e7dd;
+      color: #0f5132;
+    }
+    
+    .chevron {
+      transition: transform 0.3s;
+      font-size: 1.2rem;
+    }
+    
+    .chevron.rotated {
+      transform: rotate(180deg);
+    }
+    
+    .hour-body {
+      padding: 1.5rem;
+      display: none;
+    }
+    
+    .hour-body.show {
+      display: block;
+      animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .input-group-label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #2d3748;
+      font-size: 0.95rem;
+    }
+    
+    .tolerance-info {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-top: 0.25rem;
+    }
+    
+    .tolerance-range {
+      background: #fff5f5;
+      border: 1px solid #feb2b2;
+      padding: 0.5rem;
+      border-radius: 4px;
+      color: #c53030;
+      font-weight: 600;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .reading-inputs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
+    }
+    
+    .reading-box {
+      position: relative;
+    }
+    
+    .reading-box label {
+      font-size: 0.8rem;
+      color: #6c757d;
+      margin-bottom: 0.25rem;
+    }
+    
+    .reading-box input {
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .reading-box input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+    
+    .reading-box input.out-of-tolerance {
+      border-color: #dc3545;
+      background-color: #fff5f5;
+    }
+    
+    .section-divider {
+      border-top: 2px dashed #e9ecef;
+      margin: 1.5rem 0;
+    }
+    
+    .rejected-section {
+      background: #fff5f5;
+      border: 2px solid #feb2b2;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+    
+    .action-buttons {
+      position: sticky;
+      top: 70px;
+      z-index: 100;
+      background: white;
+      padding: 1rem 0;
+      border-bottom: 2px solid #e9ecef;
+      margin-bottom: 1rem;
+    }
+    
+    .progress-indicator {
+      height: 8px;
+      background: #e9ecef;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 1rem;
+    }
+    
+    .progress-bar-custom {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.5s ease;
+    }
+    
+    .summary-card {
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      border: 2px solid #667eea;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    .stat-item {
+      text-align: center;
+      padding: 1rem;
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #667eea;
+    }
+    
+    .stat-label {
+      font-size: 0.85rem;
+      color: #6c757d;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .validation-message {
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      display: none;
+    }
+    
+    .validation-message.show {
+      display: block;
+    }
+    
+    @media (max-width: 768px) {
+      .reading-inputs {
+        grid-template-columns: 1fr;
+      }
+      
+      .hour-status {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ✅ Navbar -->
+  <div id="navbar-container"></div>
+
+  <div class="container page-content py-4">
+    <!-- Header -->
+    <div class="inspection-header" data-aos="fade-up">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <h1 class="h3 mb-2">ERC Process Inspection</h1>
+          <h5 class="mb-0">Dimensional Check - Hourly Monitoring</h5>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+          <div class="mb-2"><strong>Date:</strong> <span id="inspectionDate"></span></div>
+          <div><strong>Shift:</strong> <span id="inspectionShift"></span></div>
+        </div>
+      </div>
+      
+      <!-- Progress Bar -->
+      <div class="progress-indicator">
+        <div class="progress-bar-custom" id="progressBar" style="width: 0%"></div>
+      </div>
+      <div class="text-end mt-2">
+        <small><span id="completedHours">0</span> of 8 hours completed</small>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons" data-aos="fade-up" data-aos-delay="50">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary btn-sm" id="btnExpandAll">
+            <span>📂</span> Expand All
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" id="btnCollapseAll">
+            <span>📁</span> Collapse All
+          </button>
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-info btn-sm" id="btnAutoFill">
+            <span>⚡</span> Auto-fill Sample
+          </button>
+          <button class="btn btn-success" id="btnSubmit">
+            <span>✅</span> Submit Inspection
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="summary-card" data-aos="fade-up" data-aos-delay="100">
+      <div class="row">
+        <div class="col-6 col-md-3 stat-item">
+          <div class="stat-value" id="totalQuantity">0</div>
+          <div class="stat-label">Total Quantity</div>
+        </div>
+        <div class="col-6 col-md-3 stat-item">
+          <div class="stat-value text-success" id="totalAccepted">0</div>
+          <div class="stat-label">Accepted</div>
+        </div>
+        <div class="col-6 col-md-3 stat-item">
+          <div class="stat-value text-danger" id="totalRejected">0</div>
+          <div class="stat-label">Rejected</div>
+        </div>
+        <div class="col-6 col-md-3 stat-item">
+          <div class="stat-value text-warning" id="rejectionRate">0%</div>
+          <div class="stat-label">Rejection Rate</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hourly Sections -->
+    <div id="hourlyInspections">
+      <!-- Hours will be generated here -->
+    </div>
+  </div>
+
+  <!-- 📌 Footer -->
+  <footer class="border-top py-3 mt-4 text-center small text-muted">
+    © SARTHI - QIMS — v0.1
+  </footer>
+
+  <!-- ✅ JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+  
+  <!-- ✅ Correct relative path to app.js - Load navbar FIRST -->
+  <script src="../assets/js/app.js"></script>
+  
+  <script>
+    // Initialize AOS after navbar loads
+    document.addEventListener('DOMContentLoaded', function() {
+      AOS.init({ duration: 800, once: true });
+    });
+
+    // Constants
+    const TOLERANCE = { min: 351, max: 352.5 };
+    const HOURS = ['Hour 1', 'Hour 2', 'Hour 3', 'Hour 4', 'Hour 5', 'Hour 6', 'Hour 7', 'Hour 8'];
+    
+    // Data storage
+    const inspectionData = {};
+
+    // Initialize
+    function init() {
+      // Set current date and shift
+      const now = new Date();
+      document.getElementById('inspectionDate').textContent = now.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+      });
+      document.getElementById('inspectionShift').textContent = 'A'; // Default shift
+      
+      // Generate hourly sections
+      generateHourlySections();
+      
+      // Update summary
+      updateSummary();
+    }
+
+    // Generate hourly inspection sections
+    function generateHourlySections() {
+      const container = document.getElementById('hourlyInspections');
+      
+      HOURS.forEach((hour, index) => {
+        const hourNum = index + 1;
+        inspectionData[hourNum] = {
+          quantity: '',
+          lengthReadings: ['', '', ''],
+          turningLength: ['', '', ''],
+          taperLength: ['', '', ''],
+          turningDia: ['', '', ''],
+          acceptanceStatus: '',
+          rejectedBars: ''
+        };
+
+        const card = document.createElement('div');
+        card.className = 'hour-card';
+        card.setAttribute('data-aos', 'fade-up');
+        card.setAttribute('data-aos-delay', (index * 50 + 150));
+        card.innerHTML = `
+          <div class="hour-header" onclick="toggleHour(${hourNum})">
+            <div class="hour-title">
+              <span class="hour-icon">🕐</span>
+              <span>${hour}</span>
+            </div>
+            <div class="hour-status">
+              <span class="status-badge status-pending" id="status-${hourNum}">Pending</span>
+              <span class="chevron" id="chevron-${hourNum}">▼</span>
+            </div>
+          </div>
+          
+          <div class="hour-body" id="body-${hourNum}">
+            <!-- Quantity of Cut Bars -->
+            <div class="mb-4">
+              <label class="input-group-label">📦 Quantity of Cut Bars</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                id="quantity-${hourNum}"
+                placeholder="Enter quantity"
+                min="0"
+                onchange="updateField(${hourNum}, 'quantity', this.value)"
+              >
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Length of Bars -->
+            <div class="mb-4">
+              <label class="input-group-label">📏 Checking of Length of Bars (mm)</label>
+              <div class="tolerance-range">
+                ⚠️ Tolerance Range: ${TOLERANCE.min} - ${TOLERANCE.max} mm
+              </div>
+              <div class="reading-inputs">
+                ${[1, 2, 3].map(i => `
+                  <div class="reading-box">
+                    <label>Reading ${i}</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      id="length-${hourNum}-${i}"
+                      placeholder="${TOLERANCE.min}-${TOLERANCE.max}"
+                      step="0.1"
+                      onchange="validateTolerance(${hourNum}, 'lengthReadings', ${i-1}, this.value)"
+                    >
+                    <div class="validation-message text-danger" id="length-error-${hourNum}-${i}">
+                      ⚠️ Out of tolerance
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Turning Length -->
+            <div class="mb-4">
+              <label class="input-group-label">🔧 Turning Length (mm)</label>
+              <div class="reading-inputs">
+                ${[1, 2, 3].map(i => `
+                  <div class="reading-box">
+                    <label>Reading ${i}</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      id="turning-length-${hourNum}-${i}"
+                      placeholder="Enter value"
+                      step="0.1"
+                      onchange="updateArray(${hourNum}, 'turningLength', ${i-1}, this.value)"
+                    >
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Taper Length -->
+            <div class="mb-4">
+              <label class="input-group-label">📐 Taper Length (mm)</label>
+              <div class="reading-inputs">
+                ${[1, 2, 3].map(i => `
+                  <div class="reading-box">
+                    <label>Reading ${i}</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      id="taper-length-${hourNum}-${i}"
+                      placeholder="Enter value"
+                      step="0.1"
+                      onchange="updateArray(${hourNum}, 'taperLength', ${i-1}, this.value)"
+                    >
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Turning Dia -->
+            <div class="mb-4">
+              <label class="input-group-label">⭕ Turning Diameter (mm)</label>
+              <div class="reading-inputs">
+                ${[1, 2, 3].map(i => `
+                  <div class="reading-box">
+                    <label>Reading ${i}</label>
+                    <input 
+                      type="number" 
+                      class="form-control" 
+                      id="turning-dia-${hourNum}-${i}"
+                      placeholder="Enter value"
+                      step="0.1"
+                      onchange="updateArray(${hourNum}, 'turningDia', ${i-1}, this.value)"
+                    >
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+
+            <!-- Acceptance Status -->
+            <div class="mb-4">
+              <label class="input-group-label">✅ Acceptance Status</label>
+              <select 
+                class="form-select" 
+                id="acceptance-${hourNum}"
+                onchange="updateAcceptanceStatus(${hourNum}, this.value)"
+              >
+                <option value="">-- Select Status --</option>
+                <option value="Accepted">Accepted</option>
+                <option value="Partially Accepted">Partially Accepted</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+
+            <!-- Rejected Bars Section (conditionally visible) -->
+            <div class="rejected-section" id="rejected-section-${hourNum}" style="display: none;">
+              <label class="input-group-label">❌ Number of Rejected Bars</label>
+              <input 
+                type="number" 
+                class="form-control" 
+                id="rejected-${hourNum}"
+                placeholder="Enter number of rejected bars"
+                min="0"
+                onchange="updateField(${hourNum}, 'rejectedBars', this.value)"
+              >
+            </div>
+          </div>
+        `;
+        
+        container.appendChild(card);
+      });
+    }
+
+    // Toggle hour section
+    function toggleHour(hourNum) {
+      const body = document.getElementById(`body-${hourNum}`);
+      const chevron = document.getElementById(`chevron-${hourNum}`);
+      
+      body.classList.toggle('show');
+      chevron.classList.toggle('rotated');
+    }
+
+    // Update field
+    function updateField(hourNum, field, value) {
+      inspectionData[hourNum][field] = value;
+      checkHourCompletion(hourNum);
+      updateSummary();
+    }
+
+    // Update array field
+    function updateArray(hourNum, field, index, value) {
+      inspectionData[hourNum][field][index] = value;
+      checkHourCompletion(hourNum);
+      updateSummary();
+    }
+
+    // Validate tolerance
+    function validateTolerance(hourNum, field, index, value) {
+      const numValue = parseFloat(value);
+      const input = document.getElementById(`length-${hourNum}-${index + 1}`);
+      const error = document.getElementById(`length-error-${hourNum}-${index + 1}`);
+      
+      if (value && (numValue < TOLERANCE.min || numValue > TOLERANCE.max)) {
+        input.classList.add('out-of-tolerance');
+        error.classList.add('show');
+      } else {
+        input.classList.remove('out-of-tolerance');
+        error.classList.remove('show');
+      }
+      
+      updateArray(hourNum, field, index, value);
+    }
+
+    // Update acceptance status
+    function updateAcceptanceStatus(hourNum, value) {
+      inspectionData[hourNum].acceptanceStatus = value;
+      const rejectedSection = document.getElementById(`rejected-section-${hourNum}`);
+      
+      if (value === 'Partially Accepted' || value === 'Rejected') {
+        rejectedSection.style.display = 'block';
+      } else {
+        rejectedSection.style.display = 'none';
+        inspectionData[hourNum].rejectedBars = '';
+        const rejectedInput = document.getElementById(`rejected-${hourNum}`);
+        if (rejectedInput) rejectedInput.value = '';
+      }
+      
+      checkHourCompletion(hourNum);
+      updateSummary();
+    }
+
+    // Check if hour is complete
+    function checkHourCompletion(hourNum) {
+      const data = inspectionData[hourNum];
+      
+      const isComplete = 
+        data.quantity !== '' &&
+        data.lengthReadings.every(r => r !== '') &&
+        data.turningLength.every(r => r !== '') &&
+        data.taperLength.every(r => r !== '') &&
+        data.turningDia.every(r => r !== '') &&
+        data.acceptanceStatus !== '' &&
+        (data.acceptanceStatus === 'Accepted' || data.rejectedBars !== '');
+      
+      const card = document.querySelector(`[data-aos]:nth-child(${hourNum})`);
+      const status = document.getElementById(`status-${hourNum}`);
+      
+      if (isComplete) {
+        // Check for rejections or out-of-tolerance readings
+        const hasRejections = data.acceptanceStatus === 'Partially Accepted' || data.acceptanceStatus === 'Rejected';
+        const hasOutOfTolerance = data.lengthReadings.some(reading => {
+          const val = parseFloat(reading);
+          return reading !== '' && (val < TOLERANCE.min || val > TOLERANCE.max);
+        });
+        
+        if (hasRejections || hasOutOfTolerance) {
+          // Yellow/Orange for issues
+          card.classList.remove('completed');
+          card.classList.add('completed-warning');
+          status.textContent = hasRejections ? 'Complete - With Rejections' : 'Complete - Out of Tolerance';
+          status.className = 'status-badge';
+          status.style.background = '#ffc107';
+          status.style.color = '#000';
+        } else {
+          // Green for all accepted and in tolerance
+          card.classList.remove('completed-warning');
+          card.classList.add('completed');
+          status.textContent = 'Complete - All OK';
+          status.className = 'status-badge status-complete';
+          status.style.background = '';
+          status.style.color = '';
+        }
+      } else {
+        card.classList.remove('completed', 'completed-warning');
+        status.textContent = 'Pending';
+        status.className = 'status-badge status-pending';
+        status.style.background = '';
+        status.style.color = '';
+      }
+      
+      updateProgress();
+    }
+
+    // Update progress bar
+    function updateProgress() {
+      let completedCount = 0;
+      
+      for (let i = 1; i <= 8; i++) {
+        const data = inspectionData[i];
+        const isComplete = 
+          data.quantity !== '' &&
+          data.lengthReadings.every(r => r !== '') &&
+          data.turningLength.every(r => r !== '') &&
+          data.taperLength.every(r => r !== '') &&
+          data.turningDia.every(r => r !== '') &&
+          data.acceptanceStatus !== '' &&
+          (data.acceptanceStatus === 'Accepted' || data.rejectedBars !== '');
+        
+        if (isComplete) completedCount++;
+      }
+      
+      const percentage = (completedCount / 8) * 100;
+      document.getElementById('progressBar').style.width = percentage + '%';
+      document.getElementById('completedHours').textContent = completedCount;
+    }
+
+    // Update summary
+    function updateSummary() {
+      let totalQuantity = 0;
+      let totalRejected = 0;
+      
+      for (let i = 1; i <= 8; i++) {
+        const data = inspectionData[i];
+        if (data.quantity) totalQuantity += parseInt(data.quantity);
+        if (data.rejectedBars) totalRejected += parseInt(data.rejectedBars);
+      }
+      
+      const totalAccepted = totalQuantity - totalRejected;
+      const rejectionRate = totalQuantity > 0 ? ((totalRejected / totalQuantity) * 100).toFixed(2) : 0;
+      
+      document.getElementById('totalQuantity').textContent = totalQuantity.toLocaleString();
+      document.getElementById('totalAccepted').textContent = totalAccepted.toLocaleString();
+      document.getElementById('totalRejected').textContent = totalRejected.toLocaleString();
+      document.getElementById('rejectionRate').textContent = rejectionRate + '%';
+    }
+
+    // Expand all
+    document.getElementById('btnExpandAll').addEventListener('click', function() {
+      for (let i = 1; i <= 8; i++) {
+        const body = document.getElementById(`body-${i}`);
+        const chevron = document.getElementById(`chevron-${i}`);
+        if (!body.classList.contains('show')) {
+          body.classList.add('show');
+          chevron.classList.add('rotated');
+        }
+      }
+    });
+
+    // Collapse all
+    document.getElementById('btnCollapseAll').addEventListener('click', function() {
+      for (let i = 1; i <= 8; i++) {
+        const body = document.getElementById(`body-${i}`);
+        const chevron = document.getElementById(`chevron-${i}`);
+        body.classList.remove('show');
+        chevron.classList.remove('rotated');
+      }
+    });
+
+    // Auto-fill sample data
+    document.getElementById('btnAutoFill').addEventListener('click', function() {
+      if (!confirm('This will fill sample data for testing purposes. Continue?')) return;
+      
+      for (let hour = 1; hour <= 8; hour++) {
+        // Quantity
+        const quantity = 100 + Math.floor(Math.random() * 50);
+        document.getElementById(`quantity-${hour}`).value = quantity;
+        updateField(hour, 'quantity', quantity);
+        
+        // Length readings (within tolerance)
+        for (let i = 1; i <= 3; i++) {
+          const value = (351 + Math.random() * 1.5).toFixed(2);
+          document.getElementById(`length-${hour}-${i}`).value = value;
+          validateTolerance(hour, 'lengthReadings', i - 1, value);
+        }
+        
+        // Turning length
+        for (let i = 1; i <= 3; i++) {
+          const value = (50 + Math.random() * 10).toFixed(2);
+          document.getElementById(`turning-length-${hour}-${i}`).value = value;
+          updateArray(hour, 'turningLength', i - 1, value);
+        }
+        
+        // Taper length
+        for (let i = 1; i <= 3; i++) {
+          const value = (30 + Math.random() * 5).toFixed(2);
+          document.getElementById(`taper-length-${hour}-${i}`).value = value;
+          updateArray(hour, 'taperLength', i - 1, value);
+        }
+        
+        // Turning dia
+        for (let i = 1; i <= 3; i++) {
+          const value = (25 + Math.random() * 2).toFixed(2);
+          document.getElementById(`turning-dia-${hour}-${i}`).value = value;
+          updateArray(hour, 'turningDia', i - 1, value);
+        }
+        
+        // Acceptance status
+        const statuses = ['Accepted', 'Accepted', 'Accepted', 'Partially Accepted'];
+        const status = statuses[Math.floor(Math.random() * statuses.length)];
+        document.getElementById(`acceptance-${hour}`).value = status;
+        updateAcceptanceStatus(hour, status);
+        
+        // Rejected bars if needed
+        if (status !== 'Accepted') {
+          const rejected = Math.floor(Math.random() * 10) + 1;
+          document.getElementById(`rejected-${hour}`).value = rejected;
+          updateField(hour, 'rejectedBars', rejected);
+        }
+      }
+      
+      alert('✅ Sample data filled successfully!');
+    });
+
+    // Submit inspection
+    document.getElementById('btnSubmit').addEventListener('click', function() {
+      // Validate all hours are complete
+      let allComplete = true;
+      for (let i = 1; i <= 8; i++) {
+        const data = inspectionData[i];
+        const isComplete = 
+          data.quantity !== '' &&
+          data.lengthReadings.every(r => r !== '') &&
+          data.turningLength.every(r => r !== '') &&
+          data.taperLength.every(r => r !== '') &&
+          data.turningDia.every(r => r !== '') &&
+          data.acceptanceStatus !== '' &&
+          (data.acceptanceStatus === 'Accepted' || data.rejectedBars !== '');
+        
+        if (!isComplete) {
+          allComplete = false;
+          break;
+        }
+      }
+      
+      // if (!allComplete) {
+      //   alert('⚠️ Please complete all hourly inspections before submitting.');
+      //   return;
+      // }
+      
+      // Submit data
+      console.log('Inspection Data:', inspectionData);
+      alert('✅ Inspection data submitted successfully!\n\nData has been logged to console for review.');
+      window.location.href = '/sarthi/pages/erc_process_inspection_dashboard.html';
+    });
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>
