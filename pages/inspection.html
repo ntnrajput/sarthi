@@ -306,7 +306,7 @@
                   <option value="A">A</option>
                   <option value="B">B</option>
                   <option value="C">C</option>
-                  <option value="C">G</option>
+                  <option value="G">G</option>
                 </select>
               </div>
 
@@ -581,6 +581,7 @@
 
       if (selectedShift === 'C') {
         // Night Shift (C): Allow today or yesterday
+        inspectionDateInput.removeAttribute('disabled');
         inspectionDateInput.setAttribute('min', yesterdayStr);
         inspectionDateInput.setAttribute('max', todayStr);
         dateHelpText.textContent = '🌙 Night shift: You can select today or yesterday';
@@ -588,7 +589,7 @@
       } else {
         // Day Shifts (A, B): Only today or future dates
         inspectionDateInput.setAttribute('min', todayStr);
-        inspectionDateInput.removeAttribute('max');
+        inspectionDateInput.setAttribute('max', todayStr);
         inspectionDateInput.value = todayStr; // Reset to today
         dateHelpText.textContent = '☀️ Day shift: Today\'s date selected';
         dateHelpText.classList.remove('text-info');
