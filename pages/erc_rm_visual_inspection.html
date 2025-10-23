@@ -27,6 +27,58 @@
       border-color: #f5c2c7 !important;
       color: #842029;
     }
+    /* 🔥 Auto-populated heat number indicator */
+    .auto-populated {
+      background-color: #d1ecf1 !important;
+      border-color: #bee5eb !important;
+    }
+    .heat-number-badge {
+      display: inline-block;
+      background-color: #0dcaf0;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    /* 🔥 Auto-populated Std. Dia indicator */
+    .std-dia-badge {
+      display: inline-block;
+      background-color: #198754;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      margin-left: 8px;
+      font-weight: 600;
+    }
+    .auto-populated-select {
+      background-color: #d1f4dd !important;
+      border-color: #badbcc !important;
+    }
+    /* 🔥 Observation checkboxes styling */
+    .observation-checkboxes {
+      background-color: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid #dee2e6;
+    }
+    .observation-checkboxes .form-check {
+      margin-bottom: 8px;
+    }
+    .observation-checkboxes .form-check:last-child {
+      margin-bottom: 0;
+    }
+    .observation-checkboxes .form-check-input:checked {
+      background-color: #0d6efd;
+      border-color: #0d6efd;
+    }
+    .observation-checkboxes .form-check-label {
+      font-size: 14px;
+      color: #495057;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -72,12 +124,16 @@
 
           <!-- 📐 Std. Diameter Selection -->
           <div class="mb-4">
-            <label for="stdDia" class="form-label fw-semibold">Std. Dia</label>
+            <label for="stdDia" class="form-label fw-semibold">
+              Std. Dia
+              <span class="std-dia-badge" id="stdDiaBadge" style="display: none;">Auto-filled</span>
+            </label>
             <select id="stdDia" class="form-select">
               <option value="" selected disabled>Select Std. Dia</option>
               <option value="20.64">20.64 mm</option>
               <option value="23">23 mm</option>
             </select>
+            <small class="text-muted" id="stdDiaHelpText"></small>
           </div>
 
           <!-- 📏 Section: Sample Diameter Table -->
@@ -120,9 +176,80 @@
     const observationsContainer = document.getElementById('observationsContainer');
     const tablesContainer = document.getElementById('tablesContainer');
     const stdDiaSelect = document.getElementById('stdDia');
+    const stdDiaBadge = document.getElementById('stdDiaBadge');
+    const stdDiaHelpText = document.getElementById('stdDiaHelpText');
 
     let toleranceMin = null;
     let toleranceMax = null;
+
+    // 🔥 Product Type to Standard Diameter Mapping
+    const productTypeToDiameter = {
+      'MK III': '20.64',
+      'MK V': '23'
+    };
+
+    // 🔥 Load inspection data from sessionStorage and auto-populate Std. Dia
+    function loadAndPopulateStdDia() {
+      const inspectionDataStr = sessionStorage.getItem('inspectionStartData');
+      if (inspectionDataStr) {
+        try {
+          const inspectionData = JSON.parse(inspectionDataStr);
+          const productType = inspectionData.productType;
+
+          if (productType && productTypeToDiameter[productType]) {
+            const stdDiaValue = productTypeToDiameter[productType];
+            stdDiaSelect.value = stdDiaValue;
+
+            // Add visual indicators
+            stdDiaSelect.classList.add('auto-populated-select');
+            stdDiaBadge.style.display = 'inline-block';
+            stdDiaHelpText.textContent = `Auto-filled based on product type: ${productType}`;
+            stdDiaHelpText.classList.add('text-success');
+
+            // Trigger change event to update tolerances
+            stdDiaSelect.dispatchEvent(new Event('change'));
+
+            // Show notification
+            showStdDiaNotification(productType, stdDiaValue);
+
+            console.log(`✅ Auto-populated Std. Dia: ${stdDiaValue} mm (from ${productType})`);
+
+            // Remove visual indicators when user changes the value
+            stdDiaSelect.addEventListener('change', function removeIndicators() {
+              stdDiaSelect.classList.remove('auto-populated-select');
+              stdDiaBadge.style.display = 'none';
+              stdDiaHelpText.textContent = '';
+              stdDiaSelect.removeEventListener('change', removeIndicators);
+            }, { once: true });
+          }
+        } catch (e) {
+          console.error('Error loading inspection data:', e);
+        }
+      }
+    }
+
+    // 🔥 Show notification when Std. Dia is auto-populated
+    function showStdDiaNotification(productType, diameter) {
+      const notification = document.createElement('div');
+      notification.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+      notification.style.zIndex = '9999';
+      notification.style.maxWidth = '500px';
+      notification.innerHTML = `
+        <strong>✅ Standard Diameter Auto-filled!</strong><br>
+        Std. Dia set to <strong>${diameter} mm</strong> based on product type <strong>${productType}</strong>.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(notification);
+
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+      }, 5000);
+    }
+
+    // 🔥 Call auto-populate on page load
+    loadAndPopulateStdDia();
 
     // ✅ Update tolerance values based on selected Std. Dia
     stdDiaSelect.addEventListener('change', () => {
@@ -140,22 +267,103 @@
       validateAllDiaFields();
     });
 
+    // 🔥 Load heat numbers from sessionStorage
+    function loadHeatNumbersFromSession() {
+      const savedHeatNumbers = sessionStorage.getItem('ercRawMaterialHeatNumbers');
+      if (savedHeatNumbers) {
+        try {
+          return JSON.parse(savedHeatNumbers);
+        } catch (e) {
+          console.error('Error parsing heat numbers from session:', e);
+          return [];
+        }
+      }
+      return [];
+    }
+
     // Function to generate fields and table
     function generateFields(count) {
       observationsContainer.innerHTML = '';
       tablesContainer.innerHTML = '';
 
+      // 🔥 Get saved heat numbers
+      const savedHeatNumbers = loadHeatNumbersFromSession();
+
       for (let s = 1; s <= count; s++) {
         // Observation fields
         const div = document.createElement('div');
         div.className = 'mb-3';
+
+        // 🔥 Auto-populate heat number if available
+        const heatNumberValue = savedHeatNumbers[s - 1] || '';
+        const isAutoPopulated = heatNumberValue !== '';
+        const autoBadge = isAutoPopulated ? '<span class="heat-number-badge">Auto-filled</span>' : '';
+        const autoClass = isAutoPopulated ? 'auto-populated' : '';
+
         div.innerHTML = `
-          <label class="form-label fw-semibold">Heat Number ${s}</label>
-          <input type="text" class="form-control mb-2" placeholder="Enter Heat No." id="hn-${s}">
+          <label class="form-label fw-semibold">Heat Number ${s} ${autoBadge}</label>
+          <input type="text" class="form-control mb-2 ${autoClass}" placeholder="Enter Heat No." id="hn-${s}" value="${heatNumberValue}">
+
           <label class="form-label fw-semibold">Observation for Sample ${s}</label>
-          <input type="text" class="form-control" placeholder="Visually checked — no such defects observed" id="observation-${s}">
+          <div class="observation-checkboxes mb-2">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="obs-${s}-surface-cracks" value="Surface cracks">
+              <label class="form-check-label" for="obs-${s}-surface-cracks">Surface cracks</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="obs-${s}-rust" value="Rust">
+              <label class="form-check-label" for="obs-${s}-rust">Rust</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="obs-${s}-bending" value="Bending">
+              <label class="form-check-label" for="obs-${s}-bending">Bending</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="obs-${s}-improper-marking" value="Improper marking">
+              <label class="form-check-label" for="obs-${s}-improper-marking">Improper marking</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="obs-${s}-no-defect" value="No Defect">
+              <label class="form-check-label" for="obs-${s}-no-defect">No Defect</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="obs-${s}-other" value="Other">
+              <label class="form-check-label" for="obs-${s}-other">Other</label>
+            </div>
+          </div>
+
+          <!-- Other remarks field (hidden by default) -->
+          <div id="other-remarks-container-${s}" style="display: none;" class="mb-2">
+            <label class="form-label fw-semibold text-muted small">Specify Other Defect:</label>
+            <input type="text" class="form-control form-control-sm" id="other-remarks-${s}" placeholder="Enter reason for other defect">
+          </div>
         `;
         observationsContainer.appendChild(div);
+
+        // 🔥 Add event listener to show/hide "Other" remarks field
+        setTimeout(() => {
+          const otherCheckbox = document.getElementById(`obs-${s}-other`);
+          const otherRemarksContainer = document.getElementById(`other-remarks-container-${s}`);
+
+          otherCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+              otherRemarksContainer.style.display = 'block';
+            } else {
+              otherRemarksContainer.style.display = 'none';
+              document.getElementById(`other-remarks-${s}`).value = '';
+            }
+          });
+        }, 100);
+
+        // 🔥 Remove auto-populated styling when user edits the field
+        if (isAutoPopulated) {
+          setTimeout(() => {
+            const heatInput = document.getElementById(`hn-${s}`);
+            heatInput.addEventListener('input', function() {
+              this.classList.remove('auto-populated');
+            });
+          }, 100);
+        }
 
         // Table for each sample
         const tableWrapper = document.createElement('div');
@@ -194,6 +402,31 @@
         }
       }
       attachValidationListeners();
+
+      // 🔥 Show notification if heat numbers were auto-populated
+      if (savedHeatNumbers.length > 0) {
+        showHeatNumberNotification(savedHeatNumbers.length);
+      }
+    }
+
+    // 🔥 Show notification when heat numbers are auto-populated
+    function showHeatNumberNotification(count) {
+      const notification = document.createElement('div');
+      notification.className = 'alert alert-info alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+      notification.style.zIndex = '9999';
+      notification.style.maxWidth = '500px';
+      notification.innerHTML = `
+        <strong>✅ Heat Numbers Auto-filled!</strong><br>
+        ${count} heat number${count > 1 ? 's' : ''} automatically populated from the dashboard.
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      `;
+      document.body.appendChild(notification);
+
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+      }, 5000);
     }
 
     // Generate initial fields with default value = 1
@@ -239,7 +472,31 @@
 
       for (let s = 1; s <= sampleCount; s++) {
         const heat = document.getElementById(`hn-${s}`).value || '';
-        const obs = document.getElementById(`observation-${s}`).value || '';
+
+        // 🔥 Collect observation checkboxes
+        const observations = [];
+        const checkboxes = [
+          { id: `obs-${s}-surface-cracks`, label: 'Surface cracks' },
+          { id: `obs-${s}-rust`, label: 'Rust' },
+          { id: `obs-${s}-bending`, label: 'Bending' },
+          { id: `obs-${s}-improper-marking`, label: 'Improper marking' },
+          { id: `obs-${s}-no-defect`, label: 'No Defect' },
+          { id: `obs-${s}-other`, label: 'Other' }
+        ];
+
+        checkboxes.forEach(cb => {
+          const checkbox = document.getElementById(cb.id);
+          if (checkbox && checkbox.checked) {
+            if (cb.label === 'Other') {
+              const otherRemarks = document.getElementById(`other-remarks-${s}`).value || '';
+              observations.push(`Other: ${otherRemarks}`);
+            } else {
+              observations.push(cb.label);
+            }
+          }
+        });
+
+        const obs = observations.length > 0 ? observations.join(', ') : 'No observations recorded';
         const diaData = [];
 
         for (let i = 1; i <= 10; i++) {

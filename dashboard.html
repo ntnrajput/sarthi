@@ -25,6 +25,44 @@
       <main id="content" class="col-12">
         <h1 class="h3 mb-4" data-aos="fade-up">Dashboard</h1>
 
+        <!-- Filters Section -->
+        <div class="row mb-4" data-aos="fade-up" data-aos-delay="50">
+          <div class="col-12 col-md-6 col-lg-3 mb-3">
+            <label for="zonalRailwayFilter" class="form-label fw-semibold">Zonal Railway</label>
+            <select class="form-select" id="zonalRailwayFilter">
+              <option value="all" selected>All Zonal Railways</option>
+              <option value="CR">Central Railway (CR)</option>
+              <option value="ER">Eastern Railway (ER)</option>
+              <option value="ECR">East Central Railway (ECR)</option>
+              <option value="ECoR">East Coast Railway (ECoR)</option>
+              <option value="NR">Northern Railway (NR)</option>
+              <option value="NCR">North Central Railway (NCR)</option>
+              <option value="NER">North Eastern Railway (NER)</option>
+              <option value="NFR">Northeast Frontier Railway (NFR)</option>
+              <option value="NWR">North Western Railway (NWR)</option>
+              <option value="SR">Southern Railway (SR)</option>
+              <option value="SCR">South Central Railway (SCR)</option>
+              <option value="SECR">South East Central Railway (SECR)</option>
+              <option value="SER">South Eastern Railway (SER)</option>
+              <option value="SWR">South Western Railway (SWR)</option>
+              <option value="WR">Western Railway (WR)</option>
+              <option value="WCR">West Central Railway (WCR)</option>
+              <option value="Metro">Metro Railway (Kolkata)</option>
+            </select>
+          </div>
+          <div class="col-12 col-md-6 col-lg-3 mb-3">
+            <label for="ritesOfficeFilter" class="form-label fw-semibold">RITES Regional Office</label>
+            <select class="form-select" id="ritesOfficeFilter">
+              <option value="all" selected>All Regional Offices</option>
+              <option value="delhi">NRIO</option>
+              <option value="mumbai">WRIO</option>
+              <option value="kolkata">ERIO</option>
+              <option value="chennai">SRIO</option>
+              <option value="bangalore">CRIO</option>
+            </select>
+          </div>
+        </div>
+
         <div class="mb-4" data-aos="fade-up" data-aos-delay="100">
           <div class="btn-group flex-wrap" role="group" aria-label="Product Toggle Buttons">
             <input type="radio" class="btn-check" name="productToggle" id="btnERC" autocomplete="off" checked>
@@ -44,52 +82,92 @@
           </div>
         </div>
 
-        <!-- KPI Cards -->
+        <!-- KPI Cards - Dual Metrics (PO Count & Quantity) -->
         <div class="row g-4 mb-4">
+          <!-- Card 1: PO Placed / Qty Offered -->
           <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card hover-lift">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                  <p class="text-muted mb-1 small">Total Inspected Quantity</p>
-                  <h3 class="mb-0" id="totalInspected">3444</h3> <!-- ✅ ID added -->
+            <div class="card hover-lift border-primary" style="border-left: 4px solid #0d6efd;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h6 class="card-subtitle text-muted mb-0">PO Placed / Qty Offered</h6>
+                  <div class="fs-3">📦</div>
                 </div>
-                <div class="fs-1">📋</div>
+                <div class="row">
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">PO Count</p>
+                    <h4 class="mb-0 text-primary" id="poPlaced">45</h4>
+                  </div>
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">Qty Offered</p>
+                    <h4 class="mb-0 text-primary" id="qtyOffered">5,200</h4>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
+          <!-- Card 2: PO Under Inspection / Qty Inspected -->
           <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card hover-lift">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                  <p class="text-muted mb-1 small">Quantity Pending for Inspection</p>
-                  <h3 class="mb-0" id="pendingQty">1200</h3> <!-- ✅ ID added -->
+            <div class="card hover-lift border-warning" style="border-left: 4px solid #ffc107;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h6 class="card-subtitle text-muted mb-0">PO Under Inspection / Qty Inspected</h6>
+                  <div class="fs-3">🔍</div>
                 </div>
-                <div class="fs-1">⏳</div>
+                <div class="row">
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">PO Count</p>
+                    <h4 class="mb-0 text-warning" id="poUnderInspection">18</h4>
+                  </div>
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">Qty Inspected</p>
+                    <h4 class="mb-0 text-warning" id="qtyInspected">3,444</h4>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
+          <!-- Card 3: PO Pending / Qty Accepted -->
           <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card hover-lift">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                  <p class="text-muted mb-1 small">Total Accepted Quantity</p>
-                  <h3 class="mb-0"><span id="acceptedQty">3000</span></h3> <!-- ✅ ID added -->
+            <div class="card hover-lift border-success" style="border-left: 4px solid #198754;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h6 class="card-subtitle text-muted mb-0">PO Pending / Qty Accepted</h6>
+                  <div class="fs-3">⏳</div>
                 </div>
-                <div class="fs-1">✅</div>
+                <div class="row">
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">PO Pending</p>
+                    <h4 class="mb-0 text-info" id="poPending">12</h4>
+                  </div>
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">Qty Accepted</p>
+                    <h4 class="mb-0 text-success" id="qtyAccepted">3,000</h4>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
+          <!-- Card 4: PO Complete / Qty Rejected -->
           <div class="col-12 col-sm-6 col-lg-3">
-            <div class="card hover-lift">
-              <div class="card-body d-flex justify-content-between align-items-center">
-                <div>
-                  <p class="text-muted mb-1 small">Active Manufacturers</p>
-                  <h3 class="mb-0" id="activeMfrs">83</h3> <!-- ✅ ID added -->
+            <div class="card hover-lift border-danger" style="border-left: 4px solid #dc3545;">
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h6 class="card-subtitle text-muted mb-0">PO Complete / Qty Rejected</h6>
+                  <div class="fs-3">✅</div>
                 </div>
-                <div class="fs-1">🏗️</div>
+                <div class="row">
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">PO Complete</p>
+                    <h4 class="mb-0 text-success" id="poComplete">15</h4>
+                  </div>
+                  <div class="col-6">
+                    <p class="text-muted mb-1 small">Qty Rejected</p>
+                    <h4 class="mb-0 text-danger" id="qtyRejected">444</h4>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -100,7 +178,8 @@
           <div class="col-12 col-lg-8" data-aos="fade-up" data-aos-delay="600">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title mb-4">Rejection Trend</h5>
+                <h5 class="card-title mb-4">📉 Monthly Rejection Rate Trend (Last 6 Months)</h5>
+                <p class="text-muted small mb-3">Rejection percentage by month for selected product category</p>
                 <canvas id="trendChart" height="80"></canvas>
               </div>
             </div>
@@ -108,7 +187,8 @@
           <div class="col-12 col-lg-4" data-aos="fade-up" data-aos-delay="700">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title mb-4">Rejection Categorisation</h5>
+                <h5 class="card-title mb-4">📊 Rejection by Inspection Stage</h5>
+                <p class="text-muted small mb-3">Distribution of rejections across inspection stages</p>
                 <canvas id="statusChart"></canvas>
               </div>
             </div>
@@ -150,27 +230,52 @@
     ERC: {
       trend: [11.8, 10.7, 6.0, 5.9, 12.1, 12.4],
       status: [3.2, 2.9, 5.2],
-      kpi: { total: 3444, pending: 1200, accepted: 3000, manufacturers: 83 }
+      kpi: {
+        poPlaced: 45, qtyOffered: 5200,
+        poUnderInspection: 18, qtyInspected: 3444,
+        poPending: 12, qtyAccepted: 3000,
+        poComplete: 15, qtyRejected: 444
+      }
     },
     Sleeper: {
       trend: [6.9, 11.0, 5.9, 13.6, 11.4, 12.0],
       status: [6.7, 5.9, 4.2],
-      kpi: { total: 2800, pending: 950, accepted: 2600, manufacturers: 65 }
+      kpi: {
+        poPlaced: 38, qtyOffered: 4200,
+        poUnderInspection: 15, qtyInspected: 2800,
+        poPending: 10, qtyAccepted: 2600,
+        poComplete: 13, qtyRejected: 200
+      }
     },
     GRSP: {
       trend: [6.6, 7.8, 7.0, 11.9, 8.4, 8.0],
       status: [4.4, 3.0, 5.1],
-      kpi: { total: 1900, pending: 500, accepted: 1700, manufacturers: 42 }
+      kpi: {
+        poPlaced: 28, qtyOffered: 2500,
+        poUnderInspection: 11, qtyInspected: 1900,
+        poPending: 8, qtyAccepted: 1700,
+        poComplete: 9, qtyRejected: 200
+      }
     },
     'Elastomeric Pad': {
       trend: [12.4, 14.3, 14.4, 10.6, 12.4, 12.4],
       status: [6.1, 2.5, 4.7],
-      kpi: { total: 1500, pending: 400, accepted: 1300, manufacturers: 30 }
+      kpi: {
+        poPlaced: 22, qtyOffered: 1800,
+        poUnderInspection: 9, qtyInspected: 1500,
+        poPending: 6, qtyAccepted: 1300,
+        poComplete: 7, qtyRejected: 200
+      }
     },
     Rail: {
       trend: [7.0, 5.2, 6.3, 9.5, 11.0, 8.8],
       status: [3.5, 3.0, 2.6],
-      kpi: { total: 4200, pending: 800, accepted: 4000, manufacturers: 2 }
+      kpi: {
+        poPlaced: 52, qtyOffered: 6500,
+        poUnderInspection: 21, qtyInspected: 4200,
+        poPending: 14, qtyAccepted: 4000,
+        poComplete: 17, qtyRejected: 200
+      }
     }
   };
 
@@ -186,84 +291,218 @@
   function initCharts(product = 'ERC') {
     const trendCtx = document.getElementById('trendChart');
     const statusCtx = document.getElementById('statusChart');
-    
+
 
     const productData = chartDataSets[product];
 
-    // Trend Chart
+    // Trend Chart with Data Labels
     if (trendCtx) {
       if (trendChartInstance) trendChartInstance.destroy();
       trendChartInstance = new Chart(trendCtx, {
         type: 'bar',
         data: {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+          labels: ['January', 'February', 'March', 'April', 'May', 'June'],
           datasets: [{
-            label: `${product} Rejection Rate`,
+            label: `${product} Rejection Rate (%)`,
             data: productData.trend,
             borderColor: 'rgb(102, 126, 234)',
-            backgroundColor: 'rgba(102, 126, 234, 0.7)',  // ✅ make bars bolder
+            backgroundColor: 'rgba(102, 126, 234, 0.7)',
             borderWidth: 1,
-            borderRadius: 6                           // ✅ rounded corners on bars
+            borderRadius: 6
           }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { display: false },
+            legend: {
+              display: true,
+              position: 'top',
+              labels: {
+                padding: 15,
+                boxWidth: 20,
+                font: { size: 13, weight: 'bold' }
+              }
+            },
             tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.7)',
-              titleFont: { weight: 'bold' },
-              padding: 10
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              titleFont: { weight: 'bold', size: 14 },
+              bodyFont: { size: 13 },
+              padding: 12,
+              callbacks: {
+                label: function(context) {
+                  return context.dataset.label + ': ' + context.parsed.y + '%';
+                }
+              }
+            },
+            datalabels: {
+              display: true,
+              color: '#333',
+              font: { weight: 'bold', size: 11 },
+              anchor: 'end',
+              align: 'top',
+              formatter: function(value) {
+                return value + '%';
+              }
             }
           },
           scales: {
             x: {
-              grid: { display: false },               // ✅ clean x grid
-              ticks: { font: { size: 12 } }
+              grid: { display: false },
+              ticks: {
+                font: { size: 12 },
+                color: '#666'
+              },
+              title: {
+                display: true,
+                text: 'Month',
+                font: { size: 13, weight: 'bold' },
+                color: '#333'
+              }
             },
             y: {
               beginAtZero: true,
-              grid: { color: 'rgba(0,0,0,0.05)' },
-              ticks: { stepSize: 20 }
+              grid: { color: 'rgba(0,0,0,0.08)' },
+              ticks: {
+                stepSize: 5,
+                font: { size: 12 },
+                color: '#666',
+                callback: function(value) {
+                  return value + '%';
+                }
+              },
+              title: {
+                display: true,
+                text: 'Rejection Rate (%)',
+                font: { size: 13, weight: 'bold' },
+                color: '#333'
+              }
             }
           }
-        }
+        },
+        plugins: [{
+          // Custom plugin to draw data labels
+          afterDatasetsDraw: function(chart) {
+            const ctx = chart.ctx;
+            chart.data.datasets.forEach(function(dataset, i) {
+              const meta = chart.getDatasetMeta(i);
+              if (!meta.hidden) {
+                meta.data.forEach(function(element, index) {
+                  ctx.fillStyle = '#333';
+                  const fontSize = 11;
+                  const fontStyle = 'bold';
+                  const fontFamily = 'Arial';
+                  ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+
+                  const dataString = dataset.data[index] + '%';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'bottom';
+
+                  const padding = 5;
+                  const position = element.tooltipPosition();
+                  ctx.fillText(dataString, position.x, position.y - padding);
+                });
+              }
+            });
+          }
+        }]
       });
     }
 
 
-    // Status Chart
+    // Status Chart with Data Labels
     if (statusCtx) {
       if (statusChartInstance) statusChartInstance.destroy();
       statusChartInstance = new Chart(statusCtx, {
         type: 'doughnut',
         data: {
-          labels: ['Raw Material', 'Process', 'Final Inspection'],
+          labels: ['Raw Material Stage', 'Process Stage', 'Final Inspection Stage'],
           datasets: [{
+            label: 'Rejection %',
             data: productData.status,
             backgroundColor: [
-              'rgba(102, 126, 234, 0.8)',
-              'rgba(255, 193, 7, 0.8)',
-              'rgba(220, 53, 69, 0.8)'
-            ]
+              'rgba(102, 126, 234, 0.85)',
+              'rgba(255, 193, 7, 0.85)',
+              'rgba(220, 53, 69, 0.85)'
+            ],
+            borderColor: [
+              'rgb(102, 126, 234)',
+              'rgb(255, 193, 7)',
+              'rgb(220, 53, 69)'
+            ],
+            borderWidth: 2
           }]
         },
         options: {
           responsive: true,
-          plugins: { legend: { position: 'top' ,
-            labels:{
-              padding: 15,
-              boxWidth:20,
-              font: {size:14}
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                padding: 15,
+                boxWidth: 20,
+                font: { size: 12 }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(0,0,0,0.8)',
+              titleFont: { weight: 'bold', size: 14 },
+              bodyFont: { size: 13 },
+              padding: 12,
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.parsed || 0;
+                  return label + ': ' + value + '%';
+                }
+              }
+            },
+            datalabels: {
+              display: true,
+              color: '#fff',
+              font: { weight: 'bold', size: 13 },
+              formatter: function(value, context) {
+                return value + '%';
+              }
             }
-          } }
-        }
+          }
+        },
+        plugins: [{
+          // Custom plugin to draw percentage labels on slices
+          afterDatasetsDraw: function(chart) {
+            const ctx = chart.ctx;
+            chart.data.datasets.forEach(function(dataset, i) {
+              const meta = chart.getDatasetMeta(i);
+              if (!meta.hidden) {
+                meta.data.forEach(function(element, index) {
+                  ctx.fillStyle = '#fff';
+                  const fontSize = 13;
+                  const fontStyle = 'bold';
+                  const fontFamily = 'Arial';
+                  ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
+
+                  const dataString = dataset.data[index] + '%';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+
+                  const position = element.tooltipPosition();
+                  ctx.fillText(dataString, position.x, position.y);
+                });
+              }
+            });
+          }
+        }]
       });
     }
-    document.getElementById('totalInspected').textContent = productData.kpi.total;
-    document.getElementById('pendingQty').textContent = productData.kpi.pending;
-    document.getElementById('acceptedQty').textContent = productData.kpi.accepted;
-    document.getElementById('activeMfrs').textContent = productData.kpi.manufacturers;
+
+    // Update KPI Cards
+    document.getElementById('poPlaced').textContent = productData.kpi.poPlaced;
+    document.getElementById('qtyOffered').textContent = productData.kpi.qtyOffered.toLocaleString();
+    document.getElementById('poUnderInspection').textContent = productData.kpi.poUnderInspection;
+    document.getElementById('qtyInspected').textContent = productData.kpi.qtyInspected.toLocaleString();
+    document.getElementById('poPending').textContent = productData.kpi.poPending;
+    document.getElementById('qtyAccepted').textContent = productData.kpi.qtyAccepted.toLocaleString();
+    document.getElementById('poComplete').textContent = productData.kpi.poComplete;
+    document.getElementById('qtyRejected').textContent = productData.kpi.qtyRejected.toLocaleString();
   }
 
   // Initialize with ERC as default
@@ -280,6 +519,31 @@
         initCharts(product);
       }
     });
+  });
+
+  // ================================
+  // 🔍 Handle Filter Dropdowns
+  // ================================
+  document.getElementById('zonalRailwayFilter').addEventListener('change', (e) => {
+    const selectedZone = e.target.value;
+    console.log(`🚂 Zonal Railway Filter: ${selectedZone}`);
+    // In a real application, this would filter the data
+    // For now, we'll just log the selection
+    if (selectedZone !== 'all') {
+      console.log(`Filtering data for ${selectedZone}`);
+      // You can add logic here to filter chartDataSets based on zone
+    }
+  });
+
+  document.getElementById('ritesOfficeFilter').addEventListener('change', (e) => {
+    const selectedOffice = e.target.value;
+    console.log(`🏢 RITES Office Filter: ${selectedOffice}`);
+    // In a real application, this would filter the data
+    // For now, we'll just log the selection
+    if (selectedOffice !== 'all') {
+      console.log(`Filtering data for ${selectedOffice} office`);
+      // You can add logic here to filter chartDataSets based on office
+    }
   });
 </script>
 

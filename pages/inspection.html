@@ -11,6 +11,182 @@
 
   <!-- ✅ Correct relative path to assets -->
   <link href="../assets/css/styles.css" rel="stylesheet">
+
+  <!-- ✅ Railway Zone Autocomplete Styles -->
+  <style>
+    /* Railway Zone Autocomplete Component */
+    .railway-zone-autocomplete {
+      position: relative;
+      width: 100%;
+    }
+
+    .railway-search-input {
+      padding-left: 40px;
+      padding-right: 70px;
+      cursor: pointer;
+      background-color: white;
+    }
+
+    .railway-search-input:focus {
+      border-color: #2E7D32;
+      box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+    }
+
+    .railway-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 20px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .railway-clear-btn {
+      position: absolute;
+      right: 35px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      font-size: 24px;
+      color: #666;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      transition: color 0.2s;
+    }
+
+    .railway-clear-btn:hover {
+      color: #d32f2f;
+    }
+
+    .railway-dropdown-arrow {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: #666;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .railway-dropdown-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border: 1px solid #2E7D32;
+      border-radius: 4px;
+      margin-top: 4px;
+      max-height: 400px;
+      overflow: hidden;
+      display: none;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .railway-dropdown-menu.show {
+      display: block;
+    }
+
+    .railway-search-wrapper {
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #f5f5f5;
+    }
+
+    .railway-filter-input {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .railway-filter-input:focus {
+      border-color: #2E7D32;
+      box-shadow: 0 0 0 0.2rem rgba(46, 125, 50, 0.25);
+    }
+
+    .railway-options-list {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .railway-option {
+      padding: 12px 16px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: background-color 0.2s;
+    }
+
+    .railway-option:hover,
+    .railway-option.focused {
+      background-color: #E8F5E9;
+    }
+
+    .railway-option:last-child {
+      border-bottom: none;
+    }
+
+    .railway-zone-code {
+      display: inline-block;
+      background-color: #E8F5E9;
+      color: #2E7D32;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .railway-zone-name {
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .railway-zone-details {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .railway-zone-location {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .railway-no-results {
+      padding: 24px;
+      text-align: center;
+    }
+
+    /* Scrollbar styling */
+    .railway-options-list::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .railway-options-list::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .railway-options-list::-webkit-scrollbar-thumb {
+      background: #2E7D32;
+      border-radius: 4px;
+    }
+
+    .railway-options-list::-webkit-scrollbar-thumb:hover {
+      background: #1B5E20;
+    }
+  </style>
 </head>
 <body>
   <!-- ✅ Navbar Component -->
@@ -58,21 +234,95 @@
                 </select>
               </div>
 
-               <div class="col-12">
-                <label for="inspectionDate" class="form-label fw-semibold">Date of Inspection</label>
-                <input type="date" class="form-control" id="inspectionDate" required>
+              <!-- � CONDITIONAL FIELDS FOR ERC + RAW MATERIAL -->
+              <div id="ercRawMaterialFields" style="display: none;">
+                <!-- PO Number -->
+                <div class="col-12">
+                  <label for="poNumber" class="form-label fw-semibold">
+                    <span class="text-danger">*</span> PO Number
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="poNumber"
+                    placeholder="Enter PO Number (e.g., PO123ABC)"
+                    pattern="[A-Za-z0-9]+"
+                    title="PO Number can contain letters and numbers only"
+                  >
+                  <small class="text-muted">Alphanumeric (letters and numbers)</small>
+                </div>
+
+                <!-- Zonal Railways with Professional Search -->
+                <div class="col-12">
+                  <label for="zonalRailway" class="form-label fw-semibold">
+                    <span class="text-danger">*</span> Zonal Railway
+                  </label>
+                  <div class="railway-zone-autocomplete">
+                    <div class="position-relative">
+                      <span class="railway-icon">🚂</span>
+                      <input
+                        type="text"
+                        class="form-control railway-search-input"
+                        id="zonalRailway"
+                        placeholder="Search by name, code, or headquarters..."
+                        autocomplete="off"
+                        readonly
+                      >
+                      <button type="button" class="railway-clear-btn" id="clearZonalRailway" style="display: none;">
+                        <span>&times;</span>
+                      </button>
+                      <span class="railway-dropdown-arrow">▼</span>
+                    </div>
+                    <div class="railway-dropdown-menu" id="zonalRailwayDropdown">
+                      <div class="railway-search-wrapper">
+                        <input
+                          type="text"
+                          class="form-control railway-filter-input"
+                          id="zonalRailwayFilter"
+                          placeholder="Type to filter..."
+                          autocomplete="off"
+                        >
+                      </div>
+                      <div class="railway-options-list" id="zonalRailwayOptions">
+                        <!-- Options will be populated by JavaScript -->
+                      </div>
+                      <div class="railway-no-results" id="zonalRailwayNoResults" style="display: none;">
+                        <p class="text-muted mb-0">No railway zones found</p>
+                      </div>
+                    </div>
+                  </div>
+                  <input type="hidden" id="zonalRailwayValue" name="zonalRailway">
+                  <small class="text-muted">Start typing to search and select</small>
+                </div>
               </div>
 
-              <!-- 🕒 Shift of Inspection -->
+              <!-- �🕒 Shift of Inspection (MOVED BEFORE DATE) -->
               <div class="col-12">
-                <label for="inspectionShift" class="form-label fw-semibold">Shift of Inspection</label>
+                <label for="inspectionShift" class="form-label fw-semibold">
+                  <span class="text-danger">*</span> Shift
+                </label>
                 <select class="form-select" id="inspectionShift" required>
                   <option value="" disabled selected>Select Shift</option>
                   <option value="A">A</option>
                   <option value="B">B</option>
                   <option value="C">C</option>
-                  <option value="G">G</option>
                 </select>
+              </div>
+
+              <!-- � Date of Inspection (AUTO-POPULATED) -->
+              <div class="col-12">
+                <label for="inspectionDate" class="form-label fw-semibold">
+                  <span class="text-danger">*</span> Date of Inspection
+                </label>
+                <input type="date" class="form-control" id="inspectionDate" required>
+                <small class="text-muted" id="dateHelpText"></small>
+              </div>
+
+              <!-- ⏰ Start Duty Timestamp (AUTO-GENERATED) -->
+              <div class="col-12">
+                <label for="dutyTimestamp" class="form-label fw-semibold">Start Duty Timestamp</label>
+                <input type="text" class="form-control bg-light" id="dutyTimestamp" readonly>
+                <small class="text-muted">Automatically captured when you start your duty</small>
               </div>
 
               <!-- 🏷 Type of Product -->
@@ -109,6 +359,241 @@
   <script>
     AOS.init({ duration: 800, once: true });
 
+    // ✅ AUTO-POPULATE DATE AND TIMESTAMP
+    const inspectionDateInput = document.getElementById('inspectionDate');
+    const inspectionShiftSelect = document.getElementById('inspectionShift');
+    const dutyTimestampInput = document.getElementById('dutyTimestamp');
+    const dateHelpText = document.getElementById('dateHelpText');
+
+    // ✅ CONDITIONAL FIELDS ELEMENTS
+    const ercRawMaterialFields = document.getElementById('ercRawMaterialFields');
+    const poNumberInput = document.getElementById('poNumber');
+    const zonalRailwayInput = document.getElementById('zonalRailway');
+
+    // ✅ RAILWAY ZONES DATA (19 Indian Railway Zones)
+    const railwayZones = [
+      { id: 1, code: 'CR', name: 'Central Railway', headquarters: 'Mumbai (CST)', state: 'Maharashtra' },
+      { id: 2, code: 'ER', name: 'Eastern Railway', headquarters: 'Kolkata (Fairlie Place)', state: 'West Bengal' },
+      { id: 3, code: 'ECR', name: 'East Central Railway', headquarters: 'Hajipur', state: 'Bihar' },
+      { id: 4, code: 'ECoR', name: 'East Coast Railway', headquarters: 'Bhubaneswar', state: 'Odisha' },
+      { id: 5, code: 'NR', name: 'Northern Railway', headquarters: 'New Delhi (Baroda House)', state: 'Delhi' },
+      { id: 6, code: 'NCR', name: 'North Central Railway', headquarters: 'Prayagraj', state: 'Uttar Pradesh' },
+      { id: 7, code: 'NER', name: 'North Eastern Railway', headquarters: 'Gorakhpur', state: 'Uttar Pradesh' },
+      { id: 8, code: 'NFR', name: 'Northeast Frontier Railway', headquarters: 'Maligaon Guwahati', state: 'Assam' },
+      { id: 9, code: 'NWR', name: 'North Western Railway', headquarters: 'Jaipur', state: 'Rajasthan' },
+      { id: 10, code: 'SR', name: 'Southern Railway', headquarters: 'Chennai', state: 'Tamil Nadu' },
+      { id: 11, code: 'SCR', name: 'South Central Railway', headquarters: 'Secunderabad', state: 'Telangana' },
+      { id: 12, code: 'SER', name: 'South Eastern Railway', headquarters: 'Kolkata (Garden Reach)', state: 'West Bengal' },
+      { id: 13, code: 'SECR', name: 'South East Central Railway', headquarters: 'Bilaspur', state: 'Chhattisgarh' },
+      { id: 14, code: 'SWR', name: 'South Western Railway', headquarters: 'Hubballi', state: 'Karnataka' },
+      { id: 15, code: 'WR', name: 'Western Railway', headquarters: 'Mumbai (Churchgate)', state: 'Maharashtra' },
+      { id: 16, code: 'WCR', name: 'West Central Railway', headquarters: 'Jabalpur', state: 'Madhya Pradesh' },
+      { id: 17, code: 'SCoR', name: 'South Coast Railway', headquarters: 'Visakhapatnam', state: 'Andhra Pradesh' },
+      { id: 18, code: 'KR', name: 'Konkan Railway', headquarters: 'Navi Mumbai', state: 'Maharashtra' },
+      { id: 19, code: 'MR', name: 'Metro Railway', headquarters: 'Kolkata', state: 'West Bengal' }
+    ];
+
+    // ✅ RAILWAY ZONE AUTOCOMPLETE COMPONENT
+    const zonalRailwayDropdown = document.getElementById('zonalRailwayDropdown');
+    const zonalRailwayFilter = document.getElementById('zonalRailwayFilter');
+    const zonalRailwayOptions = document.getElementById('zonalRailwayOptions');
+    const zonalRailwayNoResults = document.getElementById('zonalRailwayNoResults');
+    const zonalRailwayValue = document.getElementById('zonalRailwayValue');
+    const clearZonalRailway = document.getElementById('clearZonalRailway');
+
+    let selectedZone = null;
+    let focusedOptionIndex = -1;
+
+    // Render all railway zone options
+    function renderRailwayOptions(zones = railwayZones) {
+      zonalRailwayOptions.innerHTML = '';
+
+      if (zones.length === 0) {
+        zonalRailwayNoResults.style.display = 'block';
+        zonalRailwayOptions.style.display = 'none';
+        return;
+      }
+
+      zonalRailwayNoResults.style.display = 'none';
+      zonalRailwayOptions.style.display = 'block';
+
+      zones.forEach((zone, index) => {
+        const option = document.createElement('div');
+        option.className = 'railway-option';
+        option.dataset.index = index;
+        option.dataset.zoneId = zone.id;
+        option.innerHTML = `
+          <div>
+            <span class="railway-zone-code">${zone.code}</span>
+            <span class="railway-zone-name">${zone.name}</span>
+          </div>
+          <div class="railway-zone-details">
+            <span class="railway-zone-location">
+              📍 ${zone.headquarters}, ${zone.state}
+            </span>
+          </div>
+        `;
+
+        option.addEventListener('click', () => selectZone(zone));
+        zonalRailwayOptions.appendChild(option);
+      });
+    }
+
+    // Filter railway zones based on search query
+    function filterRailwayZones(query) {
+      const searchTerm = query.toLowerCase().trim();
+
+      if (!searchTerm) {
+        renderRailwayOptions(railwayZones);
+        return;
+      }
+
+      const filtered = railwayZones.filter(zone =>
+        zone.code.toLowerCase().includes(searchTerm) ||
+        zone.name.toLowerCase().includes(searchTerm) ||
+        zone.headquarters.toLowerCase().includes(searchTerm) ||
+        zone.state.toLowerCase().includes(searchTerm)
+      );
+
+      renderRailwayOptions(filtered);
+      focusedOptionIndex = -1;
+    }
+
+    // Select a railway zone
+    function selectZone(zone) {
+      selectedZone = zone;
+      zonalRailwayInput.value = `${zone.code} - ${zone.name}`;
+      zonalRailwayValue.value = JSON.stringify(zone);
+      clearZonalRailway.style.display = 'block';
+      closeDropdown();
+    }
+
+    // Clear selection
+    function clearSelection() {
+      selectedZone = null;
+      zonalRailwayInput.value = '';
+      zonalRailwayValue.value = '';
+      zonalRailwayFilter.value = '';
+      clearZonalRailway.style.display = 'none';
+      renderRailwayOptions(railwayZones);
+    }
+
+    // Open dropdown
+    function openDropdown() {
+      zonalRailwayDropdown.classList.add('show');
+      zonalRailwayFilter.focus();
+      renderRailwayOptions(railwayZones);
+    }
+
+    // Close dropdown
+    function closeDropdown() {
+      zonalRailwayDropdown.classList.remove('show');
+      zonalRailwayFilter.value = '';
+      focusedOptionIndex = -1;
+    }
+
+    // Event Listeners
+    zonalRailwayInput.addEventListener('click', openDropdown);
+    clearZonalRailway.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearSelection();
+    });
+
+    zonalRailwayFilter.addEventListener('input', (e) => {
+      filterRailwayZones(e.target.value);
+    });
+
+    // Keyboard navigation
+    zonalRailwayFilter.addEventListener('keydown', (e) => {
+      const options = zonalRailwayOptions.querySelectorAll('.railway-option');
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        focusedOptionIndex = Math.min(focusedOptionIndex + 1, options.length - 1);
+        updateFocusedOption(options);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        focusedOptionIndex = Math.max(focusedOptionIndex - 1, 0);
+        updateFocusedOption(options);
+      } else if (e.key === 'Enter' && focusedOptionIndex >= 0) {
+        e.preventDefault();
+        const zoneId = options[focusedOptionIndex].dataset.zoneId;
+        const zone = railwayZones.find(z => z.id == zoneId);
+        if (zone) selectZone(zone);
+      } else if (e.key === 'Escape') {
+        closeDropdown();
+      }
+    });
+
+    function updateFocusedOption(options) {
+      options.forEach((opt, idx) => {
+        opt.classList.toggle('focused', idx === focusedOptionIndex);
+      });
+      if (options[focusedOptionIndex]) {
+        options[focusedOptionIndex].scrollIntoView({ block: 'nearest' });
+      }
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.railway-zone-autocomplete')) {
+        closeDropdown();
+      }
+    });
+
+    // Initialize
+    renderRailwayOptions(railwayZones);
+
+    // Get today's date in YYYY-MM-DD format
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+
+    // Get yesterday's date
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+    // Auto-populate date with today's date
+    inspectionDateInput.value = todayStr;
+
+    // Update timestamp every second
+    function updateTimestamp() {
+      const now = new Date();
+      dutyTimestampInput.value = now.toLocaleString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      });
+    }
+
+    // Initialize timestamp and update every second
+    updateTimestamp();
+    setInterval(updateTimestamp, 1000);
+
+    // Handle shift change for date restrictions
+    inspectionShiftSelect.addEventListener('change', function() {
+      const selectedShift = this.value;
+
+      if (selectedShift === 'C') {
+        // Night Shift (C): Allow today or yesterday
+        inspectionDateInput.setAttribute('min', yesterdayStr);
+        inspectionDateInput.setAttribute('max', todayStr);
+        dateHelpText.textContent = '🌙 Night shift: You can select today or yesterday';
+        dateHelpText.classList.add('text-info');
+      } else {
+        // Day Shifts (A, B): Only today or future dates
+        inspectionDateInput.setAttribute('min', todayStr);
+        inspectionDateInput.removeAttribute('max');
+        inspectionDateInput.value = todayStr; // Reset to today
+        dateHelpText.textContent = '☀️ Day shift: Today\'s date selected';
+        dateHelpText.classList.remove('text-info');
+      }
+    });
+
     // ✅ Manufacturer Data
     const manufacturers = {
       'Sleeper': ['Sleeper Manufacturer 1', 'Sleeper Manufacturer 2'],
@@ -130,6 +615,28 @@
     const productSelect = document.getElementById('productSelect');
     const manufacturerSelect = document.getElementById('manufacturerSelect');
     const productTypeSelect = document.getElementById('productType');
+    const stageSelect = document.getElementById('stageSelect');
+
+    // ✅ Function to check and show/hide ERC + Raw Material fields
+    function toggleERCRawMaterialFields() {
+      const selectedProduct = productSelect.value;
+      const selectedStage = stageSelect.value;
+
+      if (selectedProduct === 'ERC' && selectedStage === 'Raw Material') {
+        ercRawMaterialFields.style.display = 'block';
+        // Make fields required when visible
+        poNumberInput.setAttribute('required', 'required');
+        zonalRailwayValue.setAttribute('required', 'required');
+      } else {
+        ercRawMaterialFields.style.display = 'none';
+        // Remove required when hidden
+        poNumberInput.removeAttribute('required');
+        zonalRailwayValue.removeAttribute('required');
+        // Clear values
+        poNumberInput.value = '';
+        clearSelection(); // Clear railway zone selection
+      }
+    }
 
     // ✅ Update Manufacturer and Product Type when Product changes
     productSelect.addEventListener('change', () => {
@@ -162,7 +669,13 @@
       } else {
         productTypeSelect.disabled = true;
       }
+
+      // Check if ERC + Raw Material fields should be shown
+      toggleERCRawMaterialFields();
     });
+
+    // ✅ Listen to Stage changes to toggle ERC + Raw Material fields
+    stageSelect.addEventListener('change', toggleERCRawMaterialFields);
 
     // ✅ Redirect Map (Relative paths — no leading slash)
     const redirectMap = {
@@ -198,9 +711,20 @@
       e.preventDefault();
       const product = productSelect.value;
       const stage = document.getElementById('stageSelect').value;
+      const productType = productTypeSelect.value;
       const redirectUrl = redirectMap[product]?.[stage];
 
       console.log('Redirecting to:', redirectUrl);
+
+      // 🔥 Save inspection data to sessionStorage for downstream pages
+      const inspectionData = {
+        product: product,
+        stage: stage,
+        productType: productType,
+        timestamp: new Date().toISOString()
+      };
+      sessionStorage.setItem('inspectionStartData', JSON.stringify(inspectionData));
+      console.log('✅ Saved inspection data to session:', inspectionData);
 
       if (redirectUrl) {
         // stays inside the same folder (/pages)

@@ -30,7 +30,7 @@
   <div id="navbar-container"></div>
 
   <div class="container page-content py-4">
-    <!-- 📝 Section 1: Static Information -->
+    <!-- � Section 1: Static Information -->
     <div class="form-container mb-4">
       <h1 class="h3 mb-4 text-center" data-aos="fade-up">
         ERC - Raw Material Inspection Dashboard
@@ -197,8 +197,22 @@
 
     // ✅ Stay inside the same /sarthi/pages folder
     function goTo(page) {
+      // 🔥 Save heat numbers to sessionStorage before navigating to Visual Inspection
+      if (page === 'erc_rm_visual_inspection.html') {
+        saveHeatNumbersToSession();
+      }
       // Use a RELATIVE link (no leading slash)
       window.location.href = page;
+    }
+
+    // 🔥 Function to save heat numbers to sessionStorage
+    function saveHeatNumbersToSession() {
+      const heatListItems = document.querySelectorAll('#heatList li');
+      const heatNumbers = Array.from(heatListItems).map(li => li.textContent.trim());
+
+      // Save to sessionStorage
+      sessionStorage.setItem('ercRawMaterialHeatNumbers', JSON.stringify(heatNumbers));
+      console.log('✅ Saved heat numbers to session:', heatNumbers);
     }
 
     // 📅 Add multiple dates
