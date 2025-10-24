@@ -178,8 +178,10 @@
           <div class="col-12 col-lg-8" data-aos="fade-up" data-aos-delay="600">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title mb-4">📉 Monthly Rejection Rate Trend (Last 6 Months)</h5>
-                <p class="text-muted small mb-3">Rejection percentage by month for selected product category</p>
+                <h5 class="card-title mb-4">📊 Monthly Inspection Results (Last 6 Months)</h5>
+                <p id="chartSubtitle" class="text-muted small mb-3">
+                  Accepted vs Rejected quantity (MT) by month for selected <strong>ERC</strong>
+                </p>
                 <canvas id="trendChart" height="80"></canvas>
               </div>
             </div>
@@ -187,8 +189,8 @@
           <div class="col-12 col-lg-4" data-aos="fade-up" data-aos-delay="700">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title mb-4">📊 Rejection by Inspection Stage</h5>
-                <p class="text-muted small mb-3">Distribution of rejections across inspection stages</p>
+                <h5 class="card-title mb-4">📉 Rejection by Inspection Stage</h5>
+                <p class="text-muted small mb-3">Distribution of rejected quantity (MT) across stages</p>
                 <canvas id="statusChart"></canvas>
               </div>
             </div>
@@ -214,10 +216,12 @@
   // Page Loader
   window.addEventListener('load', () => {
     const loader = document.getElementById('pageLoader');
-    setTimeout(() => {
-      loader.style.opacity = '0';
-      setTimeout(() => loader.style.display = 'none', 500);
-    }, 1000);
+    if (loader) {
+      setTimeout(() => {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.style.display = 'none', 500);
+      }, 1000);
+    }
   });
 
   // AOS Init
@@ -228,8 +232,15 @@
   // ================================
   const chartDataSets = {
     ERC: {
-      trend: [11.8, 10.7, 6.0, 5.9, 12.1, 12.4],
-      status: [3.2, 2.9, 5.2],
+      // Monthly quantities [Jan, Feb, Mar, Apr, May, Jun] in MT
+      accepted: [850, 920, 780, 890, 810, 750],
+      rejected: [35, 42, 28, 48, 38, 52], // 3.96%, 4.37%, 3.46%, 5.11%, 4.48%, 6.48%
+      // Stage-wise rejection in MT
+      stageRejection: {
+        raw: 85,      // 3.2% equivalent
+        process: 77,  // 2.9% equivalent  
+        final: 138    // 5.2% equivalent
+      },
       kpi: {
         poPlaced: 45, qtyOffered: 5200,
         poUnderInspection: 18, qtyInspected: 3444,
@@ -238,8 +249,13 @@
       }
     },
     Sleeper: {
-      trend: [6.9, 11.0, 5.9, 13.6, 11.4, 12.0],
-      status: [6.7, 5.9, 4.2],
+      accepted: [720, 650, 740, 680, 710, 690],
+      rejected: [52, 78, 46, 100, 88, 84], // 6.73%, 10.71%, 5.85%, 12.82%, 11.02%, 10.85%
+      stageRejection: {
+        raw: 180,     // 6.7%
+        process: 158, // 5.9%
+        final: 112    // 4.2%
+      },
       kpi: {
         poPlaced: 38, qtyOffered: 4200,
         poUnderInspection: 15, qtyInspected: 2800,
@@ -248,8 +264,13 @@
       }
     },
     GRSP: {
-      trend: [6.6, 7.8, 7.0, 11.9, 8.4, 8.0],
-      status: [4.4, 3.0, 5.1],
+      accepted: [410, 380, 420, 390, 410, 400],
+      rejected: [28, 32, 30, 52, 38, 35], // 6.40%, 7.77%, 6.67%, 11.76%, 8.48%, 8.05%
+      stageRejection: {
+        raw: 75,     // 4.4%
+        process: 51, // 3.0%
+        final: 87    // 5.1%
+      },
       kpi: {
         poPlaced: 28, qtyOffered: 2500,
         poUnderInspection: 11, qtyInspected: 1900,
@@ -258,8 +279,13 @@
       }
     },
     'Elastomeric Pad': {
-      trend: [12.4, 14.3, 14.4, 10.6, 12.4, 12.4],
-      status: [6.1, 2.5, 4.7],
+      accepted: [280, 260, 270, 290, 275, 285],
+      rejected: [40, 44, 45, 34, 39, 40], // 12.50%, 14.47%, 14.29%, 10.49%, 12.42%, 12.31%
+      stageRejection: {
+        raw: 123,    // 6.1%
+        process: 50, // 2.5%
+        final: 95    // 4.7%
+      },
       kpi: {
         poPlaced: 22, qtyOffered: 1800,
         poUnderInspection: 9, qtyInspected: 1500,
@@ -268,8 +294,13 @@
       }
     },
     Rail: {
-      trend: [7.0, 5.2, 6.3, 9.5, 11.0, 8.8],
-      status: [3.5, 3.0, 2.6],
+      accepted: [1050, 1120, 1080, 1040, 1010, 1090],
+      rejected: [79, 62, 73, 110, 125, 105], // 6.99%, 5.24%, 6.33%, 9.57%, 11.01%, 8.79%
+      stageRejection: {
+        raw: 147,    // 3.5%
+        process: 126, // 3.0%
+        final: 109   // 2.6%
+      },
       kpi: {
         poPlaced: 52, qtyOffered: 6500,
         poUnderInspection: 21, qtyInspected: 4200,
@@ -278,9 +309,6 @@
       }
     }
   };
-
-
-
 
   // ================================
   // 📈 Initialize Charts
@@ -291,138 +319,148 @@
   function initCharts(product = 'ERC') {
     const trendCtx = document.getElementById('trendChart');
     const statusCtx = document.getElementById('statusChart');
-
-
     const productData = chartDataSets[product];
+    const subtitle = document.getElementById('chartSubtitle');
+      if (subtitle) {
+        subtitle.innerHTML = `Accepted vs Rejected quantity (MT) by month for selected <strong>${product}</strong>`;
+      }
 
-    // Trend Chart with Data Labels
+    // ============================================
+    // Stacked Bar Chart - Accepted vs Rejected
+    // ============================================
     if (trendCtx) {
       if (trendChartInstance) trendChartInstance.destroy();
       trendChartInstance = new Chart(trendCtx, {
         type: 'bar',
         data: {
           labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-          datasets: [{
-            label: `${product} Rejection Rate (%)`,
-            data: productData.trend,
-            borderColor: 'rgb(102, 126, 234)',
-            backgroundColor: 'rgba(102, 126, 234, 0.7)',
-            borderWidth: 1,
-            borderRadius: 6
-          }]
+          datasets: [
+            {
+              label: 'Accepted Quantity (MT)',
+              data: productData.accepted,
+              backgroundColor: 'rgba(40, 167, 69, 0.85)',
+              borderColor: 'rgb(40, 167, 69)',
+              borderWidth: 1,
+              borderRadius: 5
+            },
+            {
+              label: 'Rejected Quantity (MT)',
+              data: productData.rejected,
+              backgroundColor: 'rgba(220, 53, 69, 0.85)',
+              borderColor: 'rgb(220, 53, 69)',
+              borderWidth: 1,
+              borderRadius: 5
+            }
+          ]
         },
         options: {
           responsive: true,
+          maintainAspectRatio: true,
+          scales: {
+            x: {
+              stacked: true,
+              grid: { display: false },
+              ticks: {
+                font: { size: 12, weight: '600' },
+                color: '#495057'
+              },
+              title: {
+                display: true,
+                text: 'Month',
+                font: { size: 14, weight: 'bold' },
+                color: '#212529',
+                padding: { top: 10 }
+              }
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              grid: { 
+                color: 'rgba(0,0,0,0.06)',
+                drawBorder: false
+              },
+              ticks: {
+                font: { size: 12, weight: '600' },
+                color: '#495057',
+                callback: function(value) {
+                  return value + ' MT';
+                }
+              },
+              title: {
+                display: true,
+                text: 'Quantity (Metric Tons)',
+                font: { size: 14, weight: 'bold' },
+                color: '#212529',
+                padding: { bottom: 10 }
+              }
+            }
+          },
           plugins: {
             legend: {
               display: true,
               position: 'top',
               labels: {
-                padding: 15,
-                boxWidth: 20,
-                font: { size: 13, weight: 'bold' }
+                padding: 20,
+                boxWidth: 15,
+                boxHeight: 15,
+                font: { size: 13, weight: 'bold' },
+                color: '#212529',
+                usePointStyle: true,
+                pointStyle: 'rectRounded'
               }
             },
             tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.8)',
+              backgroundColor: 'rgba(0,0,0,0.85)',
               titleFont: { weight: 'bold', size: 14 },
               bodyFont: { size: 13 },
-              padding: 12,
+              padding: 14,
+              cornerRadius: 8,
+              displayColors: true,
               callbacks: {
                 label: function(context) {
-                  return context.dataset.label + ': ' + context.parsed.y + '%';
+                  const label = context.dataset.label || '';
+                  const value = context.parsed.y;
+                  const total = productData.accepted[context.dataIndex] + productData.rejected[context.dataIndex];
+                  const percentage = ((value / total) * 100).toFixed(2);
+                  return label + ': ' + value + ' MT (' + percentage + '%)';
+                },
+                footer: function(tooltipItems) {
+                  const index = tooltipItems[0].dataIndex;
+                  const total = productData.accepted[index] + productData.rejected[index];
+                  return 'Total: ' + total + ' MT';
                 }
-              }
-            },
-            datalabels: {
-              display: true,
-              color: '#333',
-              font: { weight: 'bold', size: 11 },
-              anchor: 'end',
-              align: 'top',
-              formatter: function(value) {
-                return value + '%';
-              }
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: {
-                font: { size: 12 },
-                color: '#666'
-              },
-              title: {
-                display: true,
-                text: 'Month',
-                font: { size: 13, weight: 'bold' },
-                color: '#333'
-              }
-            },
-            y: {
-              beginAtZero: true,
-              grid: { color: 'rgba(0,0,0,0.08)' },
-              ticks: {
-                stepSize: 5,
-                font: { size: 12 },
-                color: '#666',
-                callback: function(value) {
-                  return value + '%';
-                }
-              },
-              title: {
-                display: true,
-                text: 'Rejection Rate (%)',
-                font: { size: 13, weight: 'bold' },
-                color: '#333'
               }
             }
           }
-        },
-        plugins: [{
-          // Custom plugin to draw data labels
-          afterDatasetsDraw: function(chart) {
-            const ctx = chart.ctx;
-            chart.data.datasets.forEach(function(dataset, i) {
-              const meta = chart.getDatasetMeta(i);
-              if (!meta.hidden) {
-                meta.data.forEach(function(element, index) {
-                  ctx.fillStyle = '#333';
-                  const fontSize = 11;
-                  const fontStyle = 'bold';
-                  const fontFamily = 'Arial';
-                  ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
-
-                  const dataString = dataset.data[index] + '%';
-                  ctx.textAlign = 'center';
-                  ctx.textBaseline = 'bottom';
-
-                  const padding = 5;
-                  const position = element.tooltipPosition();
-                  ctx.fillText(dataString, position.x, position.y - padding);
-                });
-              }
-            });
-          }
-        }]
+        }
       });
     }
 
-
-    // Status Chart with Data Labels
+    // ============================================
+    // Doughnut Chart - Stage-wise Rejection with MT
+    // ============================================
     if (statusCtx) {
       if (statusChartInstance) statusChartInstance.destroy();
+      
+      const stageData = [
+        productData.stageRejection.raw,
+        productData.stageRejection.process,
+        productData.stageRejection.final
+      ];
+      const totalRejection = stageData.reduce((a, b) => a + b, 0);
+      const percentages = stageData.map(val => ((val / totalRejection) * 100).toFixed(1));
+
       statusChartInstance = new Chart(statusCtx, {
         type: 'doughnut',
         data: {
           labels: ['Raw Material Stage', 'Process Stage', 'Final Inspection Stage'],
           datasets: [{
-            label: 'Rejection %',
-            data: productData.status,
+            label: 'Rejected Quantity',
+            data: stageData,
             backgroundColor: [
-              'rgba(102, 126, 234, 0.85)',
-              'rgba(255, 193, 7, 0.85)',
-              'rgba(220, 53, 69, 0.85)'
+              'rgba(102, 126, 234, 0.9)',
+              'rgba(255, 193, 7, 0.9)',
+              'rgba(220, 53, 69, 0.9)'
             ],
             borderColor: [
               'rgb(102, 126, 234)',
@@ -434,60 +472,63 @@
         },
         options: {
           responsive: true,
+          maintainAspectRatio: true,
           plugins: {
             legend: {
               position: 'bottom',
               labels: {
-                padding: 15,
-                boxWidth: 20,
-                font: { size: 12 }
+                padding: 18,
+                boxWidth: 15,
+                boxHeight: 15,
+                font: { size: 12, weight: '600' },
+                color: '#212529',
+                usePointStyle: true,
+                pointStyle: 'circle'
               }
             },
             tooltip: {
-              backgroundColor: 'rgba(0,0,0,0.8)',
+              backgroundColor: 'rgba(0,0,0,0.85)',
               titleFont: { weight: 'bold', size: 14 },
               bodyFont: { size: 13 },
-              padding: 12,
+              padding: 14,
+              cornerRadius: 8,
               callbacks: {
                 label: function(context) {
                   const label = context.label || '';
-                  const value = context.parsed || 0;
-                  return label + ': ' + value + '%';
+                  const value = context.parsed;
+                  const percentage = percentages[context.dataIndex];
+                  return label + ': ' + value + ' MT (' + percentage + '%)';
                 }
               }
             },
             datalabels: {
-              display: true,
-              color: '#fff',
-              font: { weight: 'bold', size: 13 },
-              formatter: function(value, context) {
-                return value + '%';
-              }
+              display: false
             }
           }
         },
         plugins: [{
-          // Custom plugin to draw percentage labels on slices
           afterDatasetsDraw: function(chart) {
             const ctx = chart.ctx;
-            chart.data.datasets.forEach(function(dataset, i) {
-              const meta = chart.getDatasetMeta(i);
-              if (!meta.hidden) {
-                meta.data.forEach(function(element, index) {
-                  ctx.fillStyle = '#fff';
-                  const fontSize = 13;
-                  const fontStyle = 'bold';
-                  const fontFamily = 'Arial';
-                  ctx.font = Chart.helpers.fontString(fontSize, fontStyle, fontFamily);
-
-                  const dataString = dataset.data[index] + '%';
-                  ctx.textAlign = 'center';
-                  ctx.textBaseline = 'middle';
-
-                  const position = element.tooltipPosition();
-                  ctx.fillText(dataString, position.x, position.y);
-                });
-              }
+            const dataset = chart.data.datasets[0];
+            const meta = chart.getDatasetMeta(0);
+            
+            meta.data.forEach(function(element, index) {
+              ctx.save();
+              ctx.fillStyle = '#ffffff';
+              ctx.font = 'bold 12px Arial';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              
+              const position = element.tooltipPosition();
+              const value = stageData[index];
+              const percentage = percentages[index];
+              
+              // Draw MT value
+              ctx.fillText(value + ' MT', position.x, position.y - 8);
+              // Draw percentage
+              ctx.fillText('(' + percentage + '%)', position.x, position.y + 8);
+              
+              ctx.restore();
             });
           }
         }]

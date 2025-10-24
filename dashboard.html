@@ -11,6 +11,48 @@
   <link href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" rel="stylesheet">
   <!-- Custom CSS -->
   <link href="assets/css/styles.css" rel="stylesheet">
+  
+  <style>
+    .monthly-data-table {
+      margin-top: 2rem;
+    }
+    .monthly-data-table table {
+      font-size: 0.95rem;
+    }
+    .monthly-data-table th {
+      background-color: #0d6efd;
+      color: white;
+      font-weight: 600;
+      text-align: center;
+      vertical-align: middle;
+      padding: 12px 8px;
+    }
+    .monthly-data-table td {
+      text-align: center;
+      vertical-align: middle;
+      padding: 10px 8px;
+    }
+    .monthly-data-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+      background-color: #f8f9fa;
+    }
+    .rejection-low {
+      background-color: #d4edda;
+      color: #155724;
+      font-weight: 600;
+    }
+    .rejection-medium {
+      background-color: #fff3cd;
+      color: #856404;
+      font-weight: 600;
+    }
+    .rejection-high {
+      background-color: #f8d7da;
+      color: #721c24;
+      font-weight: 600;
+    }
+  </style>
 </head>
 <body>
 
@@ -183,6 +225,29 @@
                   Accepted vs Rejected quantity (MT) by month for selected <strong>ERC</strong>
                 </p>
                 <canvas id="trendChart" height="80"></canvas>
+                
+                <!-- Monthly Data Table -->
+                <div class="monthly-data-table">
+                  <h6 class="mb-3">📋 Monthly Data Summary</h6>
+                  <div class="table-responsive">
+                    <table class="table table-bordered table-hover">
+                      <thead>
+                        <tr>
+                          <th style="text-align: left;">Metric</th>
+                          <th>January</th>
+                          <th>February</th>
+                          <th>March</th>
+                          <th>April</th>
+                          <th>May</th>
+                          <th>June</th>
+                        </tr>
+                      </thead>
+                      <tbody id="monthlyDataTableBody">
+                        <!-- Data will be populated by JavaScript -->
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -310,11 +375,46 @@
     }
   };
 
+  const months = ['January', 'February', 'March', 'April', 'May', 'June'];
+
   // ================================
   // 📈 Initialize Charts
   // ================================
   let trendChartInstance = null;
   let statusChartInstance = null;
+
+  function getRejectionClass(percentage) {
+    if (percentage < 5) return 'rejection-low';
+    if (percentage < 10) return 'rejection-medium';
+    return 'rejection-high';
+  }
+
+  function updateMonthlyDataTable(product = 'ERC') {
+    const productData = chartDataSets[product];
+    const tableBody = document.getElementById('monthlyDataTableBody');
+    
+    // Build Lot Quantity row
+    let lotQtyRow = '<tr><td>Lot Quantity (MT)</td>';
+    for (let i = 0; i < 6; i++) {
+      const lotQty = productData.accepted[i] + productData.rejected[i];
+      lotQtyRow += `<td>${lotQty.toLocaleString()}</td>`;
+    }
+    lotQtyRow += '</tr>';
+    
+    // Build Rejection Percentage row
+    let rejectionRow = '<tr><td>Rejection %</td>';
+    for (let i = 0; i < 6; i++) {
+      const accepted = productData.accepted[i];
+      const rejected = productData.rejected[i];
+      const lotQty = accepted + rejected;
+      const rejectionPct = ((rejected / lotQty) * 100).toFixed(2);
+      const rejectionClass = getRejectionClass(parseFloat(rejectionPct));
+      rejectionRow += `<td class="${rejectionClass}">${rejectionPct}%</td>`;
+    }
+    rejectionRow += '</tr>';
+    
+    tableBody.innerHTML = lotQtyRow + rejectionRow;
+  }
 
   function initCharts(product = 'ERC') {
     const trendCtx = document.getElementById('trendChart');
@@ -325,6 +425,9 @@
         subtitle.innerHTML = `Accepted vs Rejected quantity (MT) by month for selected <strong>${product}</strong>`;
       }
 
+    // Update monthly data table
+    updateMonthlyDataTable(product);
+
     // ============================================
     // Stacked Bar Chart - Accepted vs Rejected
     // ============================================
@@ -333,7 +436,7 @@
       trendChartInstance = new Chart(trendCtx, {
         type: 'bar',
         data: {
-          labels: ['January', 'February', 'March', 'April', 'May', 'June'],
+          labels: months,
           datasets: [
             {
               label: 'Accepted Quantity (MT)',
